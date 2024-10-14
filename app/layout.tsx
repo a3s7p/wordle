@@ -3,8 +3,8 @@ import "./globals.css";
 import { ClientWrapper } from "./components/ClientWrapper";
 
 export const metadata: Metadata = {
-  title: "Create Nillion App",
-  description: "Quickstart a Nillion fullstack app",
+  title: "Nillion Secret Wordle",
+  description: "Wordle-like game that uses the Nillion network to compute on secret data",
 };
 
 export default function RootLayout({
