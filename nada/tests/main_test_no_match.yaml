@@ -1,0 +1,19 @@
+---
+program: main
+inputs:
+  correct_1: 3
+  correct_2: 4
+  correct_3: 5
+  correct_4: 6
+  correct_5: 7
+  guess_1: 1
+  guess_2: 1
+  guess_3: 1
+  guess_4: 1
+  guess_5: 1
+expected_outputs:
+  guess_result_1: 0
+  guess_result_2: 0
+  guess_result_3: 0
+  guess_result_4: 0
+  guess_result_5: 0
