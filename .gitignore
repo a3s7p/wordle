@@ -64,3 +64,6 @@ out
 
 # Nada venv
 nada/.venv/
+
+# python cache
+__pycache__
