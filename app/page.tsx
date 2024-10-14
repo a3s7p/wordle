@@ -5,6 +5,7 @@ import FetchValue from "./components/FetchValue";
 import { StoreProgram } from "./components/StoreProgram";
 import { Compute } from "./components/Compute";
 import { ComputeOutput } from "./components/ComputeOutput";
+import Wordle from "./components/Wordle";
 
 export default function Home() {
   return (
@@ -12,6 +13,11 @@ export default function Home() {
       <div className="w-full flex flex-col items-center font-mono text-sm">
         <WelcomeContent />
         <Login />
+
+        <div className="flex flex-col gap-4 max-w-4xl mx-auto mb-5">
+          <Wordle />
+        </div>
+
         <div className="flex flex-col gap-4 max-w-4xl mx-auto w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
             <StoreValue />
