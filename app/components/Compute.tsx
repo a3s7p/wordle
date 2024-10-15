@@ -21,14 +21,21 @@ export const Compute: FC = () => {
     if (!programId) throw new Error("compute: program id required");
 
     const bindings = ProgramBindings.create(programId)
-      .addInputParty(PartyName.parse("Party1"), client.partyId)
-      .addOutputParty(PartyName.parse("Party1"), client.partyId);
+      .addInputParty(PartyName.parse("Gamemaker"), client.partyId)
+      .addInputParty(PartyName.parse("Player"), client.partyId)
+      .addOutputParty(PartyName.parse("Player"), client.partyId);
 
-    // Note: This is hardcoded for demo purposes.
-    // Feel free to change the NamedValue to your required program values.
     const values = NadaValues.create()
-      .insert(NamedValue.parse("my_int1"), NadaValue.createSecretInteger(2))
-      .insert(NamedValue.parse("my_int2"), NadaValue.createSecretInteger(4));
+      .insert(NamedValue.parse("correct_1"), NadaValue.createSecretInteger(65))  // 'A'
+      .insert(NamedValue.parse("correct_2"), NadaValue.createSecretInteger(66))  // 'B'
+      .insert(NamedValue.parse("correct_3"), NadaValue.createSecretInteger(67))  // 'C'
+      .insert(NamedValue.parse("correct_4"), NadaValue.createSecretInteger(68))  // 'D'
+      .insert(NamedValue.parse("correct_5"), NadaValue.createSecretInteger(69))  // 'E'
+      .insert(NamedValue.parse("guess_1"), NadaValue.createSecretInteger(65))  // 'A'
+      .insert(NamedValue.parse("guess_2"), NadaValue.createSecretInteger(66))  // 'B'
+      .insert(NamedValue.parse("guess_3"), NadaValue.createSecretInteger(67))  // 'C'
+      .insert(NamedValue.parse("guess_4"), NadaValue.createSecretInteger(68))  // 'D'
+      .insert(NamedValue.parse("guess_5"), NadaValue.createSecretInteger(69));  // 'E'
 
     nilCompute.execute({ bindings, values });
   };
@@ -58,7 +65,16 @@ export const Compute: FC = () => {
         )}
       </button>
       <p className="my-2 italic text-sm mt-2">
-        Current values are 4 & 2. Refer to ComputeOutput.tsx
+        Current values are:
+      </p>
+      <p className="my-2 italic text-sm mt-2">
+        'A', 'B', 'C', 'D', 'E'
+      </p>
+      <p className="my-2 italic text-sm mt-2">
+        a.k.a.
+      </p>
+      <p className="my-2 italic text-sm mt-2">
+        65, 66, 67, 68, 69
       </p>
       <ul className="list-disc pl-5 mt-4">
         <li className="mt-2">Status: {nilCompute.status}</li>
