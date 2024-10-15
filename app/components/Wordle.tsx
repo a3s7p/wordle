@@ -59,8 +59,8 @@ export default function Wordle({ length = 5 }) {
       <ul className="mt-4">
         {
           letters.map((v, i) => (
-            <li className="mt-2" key={"value_" + i}>
-              <>Letter {i}: </>
+            <li className="mt-2" key={"value_letter_" + i + 1}>
+              <>Letter {i + 1}: </>
               {
                 v.nilStore.status +  " / " + (v.nilStore.isSuccess ? (
                   v.nilStore.data?.substring(0, 6) + "..." + v.nilStore.data?.substring(v.nilStore.data.length - 6)
