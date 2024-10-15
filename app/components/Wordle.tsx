@@ -3,61 +3,83 @@
 import React, { useState } from "react";
 import { useNilStoreValue } from "@nillion/client-react-hooks";
 
-export default function Wordle() {
-  const nilStore = useNilStoreValue();
-  const [secret, setSecret] = useState<number | null>(null);
-  const [copied, setCopied] = useState(false);
+export default function Wordle({ length = 5 }) {
+  const letters = Array.from({length}, () => {
+    const [secret, setSecret] = useState<string>("");
+    const [copied, setCopied] = useState(false);
+    const nilStore = useNilStoreValue();
 
-  const handleClick = () => {
-    if (!secret) throw new Error("store-value: Value required");
-    nilStore.execute({ name: "data", data: secret, ttl: 1 });
-  };
+    return {
+      secret,
+      setSecret,
+      copied,
+      setCopied,
+      nilStore,
+    };
+  });
+
+  const any_loading = () => letters.find(({nilStore}) => nilStore.isLoading) !== undefined;
+  const any_empty = () => letters.find(({secret}) => !secret) !== undefined;
+  const ready_to_store = () => !(any_loading() || any_empty());
+
+  const inputs = letters.map((v, i) => {
+    return (<input
+      key={"letter_" + i + 1}
+      className="p-2 mx-1 border border-gray-300 rounded text-black w-[38px] text-center"
+      value={v.secret || ""}
+      onChange={(e) => v.setSecret(e.target.value.toUpperCase())}
+      maxLength={1}
+    />)
+  });
 
   return (
-    <div className="border border-gray-400 rounded-lg p-4 w-full max-w-md">
-      <h2 className="text-2xl font-bold mb-2">Store Secret Integer</h2>
-      <input
-        type="number"
-        className="w-full p-2 mb-2 border border-gray-300 rounded text-black"
-        placeholder="Secret value"
-        value={secret || ""}
-        onChange={(e) => setSecret(Number(e.target.value))}
-      />
+    <div className="border border-gray-400 rounded-lg p-4 w-full max-w-md text-center">
+      <h2 className="text-2xl text-center font-bold mb-3">Store Secret Letters</h2>
+      {inputs}
       <button
-        className={`flex items-center justify-center w-40 px-4 py-2 mt-4 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ${
-          !secret || nilStore.isLoading ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        onClick={handleClick}
-        disabled={!secret || nilStore.isLoading}
-      >
-        {nilStore.isLoading ? (
-          <div className="w-5 h-5 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></div>
-        ) : (
-          <>Store</>
-        )}
+          className={`flex items-center justify-center w-40 px-4 py-2 mt-4 mx-auto text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ${
+            ready_to_store() ? "" : "opacity-50 cursor-not-allowed"
+          }`}
+          onClick={() => letters.forEach(({nilStore, secret}, i) => {
+            // FIXME: fails without the timeout; race condition in SDK?
+            setTimeout(
+              () => nilStore.execute({ name: "data", data: secret.charCodeAt(0), ttl: 1 }),
+              i * 200,
+            )
+          })}
+          disabled={!ready_to_store()}
+        >
+          {!any_loading() ? (
+            <>Store all</>
+          ) : (
+            <div className="w-5 h-5 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></div>
+          )}
       </button>
+      <hr className="my-5"/>
       <ul className="mt-4">
-        <li className="mt-2">Status: {nilStore.status}</li>
-        <li className="mt-2">
-          Id:
-          {nilStore.isSuccess ? (
-            <>
-              {`${nilStore.data?.substring(0, 6)}...${nilStore.data?.substring(nilStore.data.length - 6)}`}
+        {
+          letters.map((v, i) => (
+            <li className="mt-2" key={"value_" + i}>
+              <>Letter {i}: </>
+              {
+                v.nilStore.status +  " / " + (v.nilStore.isSuccess ? (
+                  v.nilStore.data?.substring(0, 6) + "..." + v.nilStore.data?.substring(v.nilStore.data.length - 6)
+                ) : "-")
+              }
+              &nbsp;
               <button
                 onClick={() => {
-                  setCopied(true);
-                  navigator.clipboard.writeText(nilStore.data);
-                  setTimeout(() => setCopied(false), 2000);
+                  v.setCopied(true);
+                  navigator.clipboard.writeText(v.nilStore.data);
+                  setTimeout(() => v.setCopied(false), 2000);
                 }}
               >
-                {!copied ? " 📋" : " ✅"}
+                {!v.copied ? " 📋" : " ✅"}
               </button>
-            </>
-          ) : (
-            "idle"
-          )}
-        </li>
+            </li>
+          ))
+        }
       </ul>
     </div>
-  );
+  )
 }

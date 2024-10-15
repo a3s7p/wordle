@@ -14,9 +14,11 @@ export default function Home() {
         <WelcomeContent />
         <Login />
 
-        <div className="flex flex-col gap-4 max-w-4xl mx-auto mb-5">
+        <div className="w-full flex flex-col items-center max-w-4xl mx-auto mb-5">
           <Wordle />
         </div>
+
+        <div className="my-5 w-full"><hr/></div>
 
         <div className="flex flex-col gap-4 max-w-4xl mx-auto w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
