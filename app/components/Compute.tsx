@@ -31,11 +31,11 @@ export const Compute: FC = () => {
       .insert(NamedValue.parse("correct_3"), NadaValue.createSecretInteger(67))  // 'C'
       .insert(NamedValue.parse("correct_4"), NadaValue.createSecretInteger(68))  // 'D'
       .insert(NamedValue.parse("correct_5"), NadaValue.createSecretInteger(69))  // 'E'
-      .insert(NamedValue.parse("guess_1"), NadaValue.createSecretInteger(65))    // 'A'
-      .insert(NamedValue.parse("guess_2"), NadaValue.createSecretInteger(65))    // 'A'
-      .insert(NamedValue.parse("guess_3"), NadaValue.createSecretInteger(65))    // 'A'
-      .insert(NamedValue.parse("guess_4"), NadaValue.createSecretInteger(65))    // 'A'
-      .insert(NamedValue.parse("guess_5"), NadaValue.createSecretInteger(65));   // 'A'
+      .insert(NamedValue.parse("guess_1"), NadaValue.createSecretInteger(70))    // 'F'
+      .insert(NamedValue.parse("guess_2"), NadaValue.createSecretInteger(70))    // 'F'
+      .insert(NamedValue.parse("guess_3"), NadaValue.createSecretInteger(70))    // 'F'
+      .insert(NamedValue.parse("guess_4"), NadaValue.createSecretInteger(70))    // 'F'
+      .insert(NamedValue.parse("guess_5"), NadaValue.createSecretInteger(70));   // 'F'
 
     nilCompute.execute({ bindings, values });
   };
