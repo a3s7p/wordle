@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useNilStoreValue } from "@nillion/client-react-hooks";
 
-export default function Wordle({ length = 5 }) {
+export default function Wordle({ length = 5, tries = 6 }) {
   const letters = Array.from({length}, () => {
     const [secret, setSecret] = useState<string>("");
     const [copied, setCopied] = useState(false);
@@ -22,19 +22,29 @@ export default function Wordle({ length = 5 }) {
   const any_empty = () => letters.find(({secret}) => !secret) !== undefined;
   const ready_to_store = () => !(any_loading() || any_empty());
 
-  const inputs = letters.map((v, i) => {
-    return (<input
-      key={"letter_" + i + 1}
-      className="p-2 mx-1 border border-gray-300 rounded text-black w-[38px] text-center"
-      value={v.secret || ""}
-      onChange={(e) => v.setSecret(e.target.value.toUpperCase())}
-      maxLength={1}
-    />)
-  });
+  const inputs = letters.map((v, i) => <input
+    key={"letter_input_" + i + 1}
+    className="p-2 mx-1 border border-gray-300 rounded text-black w-[38px] text-center"
+    value={v.secret || ""}
+    onChange={(e) => v.setSecret(e.target.value.toUpperCase())}
+    maxLength={1}
+  />);
+
+  const outputs = Array.from({ length: tries }, (_, i) => <div> {letters.map((v, j) => <input
+    key={`letter_display_${i + 1}_${j + 1}`}
+    className="p-2 mx-1 my-1 border border-gray-300 rounded text-black w-[38px] text-center"
+    value="X"
+    onChange={(e) => v.setSecret(e.target.value.toUpperCase())}
+    maxLength={1}
+    disabled
+  />)}</div>);
 
   return (
     <div className="border border-gray-400 rounded-lg p-4 w-full max-w-md text-center">
-      <h2 className="text-2xl text-center font-bold mb-3">Store Secret Letters</h2>
+      <h2 className="text-2xl text-center font-bold mb-3">Display Secret Letters</h2>
+      {outputs}
+      <hr className="my-5"/>
+      <h2 className="text-2xl text-center font-bold mt-2 mb-3">Store Secret Letters</h2>
       {inputs}
       <button
           className={`flex items-center justify-center w-40 px-4 py-2 mt-4 mx-auto text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ${
