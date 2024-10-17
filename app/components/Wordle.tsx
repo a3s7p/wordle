@@ -70,7 +70,7 @@ export default function Wordle({ length = 5 }) {
               <button
                 onClick={() => {
                   v.setCopied(true);
-                  navigator.clipboard.writeText(v.nilStore.data);
+                  navigator.clipboard.writeText((v.nilStore as any).data);
                   setTimeout(() => v.setCopied(false), 2000);
                 }}
               >
