@@ -30,11 +30,10 @@ export default function Wordle({ length = 5, tries = 6 }) {
     maxLength={1}
   />);
 
-  const outputs = Array.from({ length: tries }, (_, i) => <div> {letters.map((v, j) => <input
+  const outputs = Array.from({ length: tries }, (_, i) => <div key={`div-${i + 1}`}> {Array.from({ length }, (_, j) => <input
     key={`letter_display_${i + 1}_${j + 1}`}
     className="p-2 mx-1 my-1 border border-gray-300 rounded text-black w-[38px] text-center"
     value="X"
-    onChange={(e) => v.setSecret(e.target.value.toUpperCase())}
     maxLength={1}
     disabled
   />)}</div>);
