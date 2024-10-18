@@ -1,9 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
-import { useNilStoreValue } from "@nillion/client-react-hooks";
+import React, { useEffect, useState } from "react";
+import { ProgramId } from "@nillion/client-core";
+import { useNilStoreValue, useNilStoreProgram } from "@nillion/client-react-hooks";
+
+function abbrevId(id: string) { return id.substring(0, 6) + "..." + id.substring(id.length - 6) };
 
 export default function Wordle({ length = 5, tries = 6 }) {
+  // TODO make this generic
+  const nilStoreProgram = useNilStoreProgram();
+  const programPath = "http://localhost:3000/main.nada.bin";
+  const [programId, setProgramId] = useState<null | ProgramId>();
+
+  // this should only run once and assumes Nillion login is already done by ancestor
+  const storeProgram = () => fetch(programPath).then((v) => v.arrayBuffer()).then((v) => nilStoreProgram.execute({
+    name: "wordle",
+    program: new Uint8Array(v),
+  }));
+
+  useEffect(() => {
+    nilStoreProgram.isSuccess && setProgramId(nilStoreProgram.data);
+    console.log(nilStoreProgram)
+  }, [nilStoreProgram.isSuccess]);
+
   const letters = Array.from({length}, () => {
     const [secret, setSecret] = useState<string>("");
     const [copied, setCopied] = useState(false);
@@ -21,6 +40,7 @@ export default function Wordle({ length = 5, tries = 6 }) {
   const any_loading = () => letters.find(({nilStore}) => nilStore.isLoading) !== undefined;
   const any_empty = () => letters.find(({secret}) => !secret) !== undefined;
   const ready_to_store = () => !(any_loading() || any_empty());
+  const no_load = programId || nilStoreProgram.isLoading || nilStoreProgram.isSuccess;
 
   const inputs = letters.map((v, i) => <input
     key={"letter_input_" + i + 1}
@@ -40,6 +60,17 @@ export default function Wordle({ length = 5, tries = 6 }) {
 
   return (
     <div className="border border-gray-400 rounded-lg p-4 w-full max-w-md text-center">
+      <button
+        className={`flex items-center justify-center px-4 py-2 border rounded text-black mb-4 ${
+          no_load ? "opacity-50 cursor-not-allowed bg-gray-200" : "bg-white hover:bg-gray-100"
+        }`}
+        onClick={storeProgram}
+        disabled={no_load}
+      >
+        { programId ? "Loaded!" : nilStoreProgram.isLoading ? "Loading program..." : "Load program"}
+      </button>
+      <p>Program id: {programId ? abbrevId(programId) : "-"}</p>
+      <hr className="my-5"/>
       <h2 className="text-2xl text-center font-bold mb-3">Display Secret Letters</h2>
       {outputs}
       <hr className="my-5"/>
@@ -71,9 +102,7 @@ export default function Wordle({ length = 5, tries = 6 }) {
             <li className="mt-2" key={"value_letter_" + i + 1}>
               <>Letter {i + 1}: </>
               {
-                v.nilStore.status +  " / " + (v.nilStore.isSuccess ? (
-                  v.nilStore.data?.substring(0, 6) + "..." + v.nilStore.data?.substring(v.nilStore.data.length - 6)
-                ) : "-")
+                v.nilStore.status +  " / " + (v.nilStore.isSuccess ? abbrevId(v.nilStore.data) : "-")
               }
               &nbsp;
               <button
