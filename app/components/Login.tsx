@@ -2,9 +2,9 @@
 
 import { createSignerFromKey } from "@nillion/client-payments";
 import { useNillionAuth, UserCredentials } from "@nillion/client-react-hooks";
-import { useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 
-export const Login = () => {
+export const Login: FC<{ children: ReactNode }> = ({ children }) => {
   const { authenticated, login, logout } = useNillionAuth();
   // Feel free to set this to other values + useSetState
   const SEED = "example-secret-seed";
@@ -44,24 +44,29 @@ export const Login = () => {
   };
 
   return (
-    <div className="flex-row flex my-6">
-      {authenticated ? (
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={handleLogout}
-          disabled={isLoading}
-        >
-          {isLoading ? "Logging out..." : "Logout"}
-        </button>
-      ) : (
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={handleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? "Logging in..." : "Login"}
-        </button>
-      )}
+    <div>
+      <div className="flex-row flex my-6">
+        {authenticated ? (
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={handleLogout}
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging out..." : "Logout"}
+          </button>
+        ) : (
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? "Logging in..." : "Login"}
+          </button>
+        )}
+      </div>
+      <div className="flex-row flex my-6">
+        { authenticated ? !isLoading ? children : <></> : <></> }
+      </div>
     </div>
   );
 };
