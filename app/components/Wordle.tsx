@@ -69,7 +69,6 @@ export default function Wordle({ length = 5, tries = 6 }) {
       >
         { programId ? "Loaded!" : nilStoreProgram.isLoading ? "Loading program..." : "Load program"}
       </button>
-      <p>Program id: {programId ? abbrevId(programId) : "-"}</p>
       <hr className="my-5"/>
       <h2 className="text-2xl text-center font-bold mb-3">Display Secret Letters</h2>
       {outputs}
