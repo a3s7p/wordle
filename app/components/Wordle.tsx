@@ -1,8 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ProgramId } from "@nillion/client-core";
-import { useNilStoreValue, useNilStoreProgram } from "@nillion/client-react-hooks";
+import {
+  NadaValue,
+  NadaValues,
+  NamedValue,
+  PartyName,
+  ProgramBindings,
+  ProgramId,
+} from "@nillion/client-core";
+import { useNilStoreValue, useNilStoreProgram, useNilCompute, useNillion } from "@nillion/client-react-hooks";
 
 function abbrevId(id: string) { return id.substring(0, 6) + "..." + id.substring(id.length - 6) };
 
@@ -39,7 +46,7 @@ export default function Wordle({ length = 5, tries = 6 }) {
 
   const any_loading = () => letters.find(({nilStore}) => nilStore.isLoading) !== undefined;
   const any_empty = () => letters.find(({secret}) => !secret) !== undefined;
-  const ready_to_store = () => !(any_loading() || any_empty());
+  const ready_to_store = () => programId && !any_empty();
   const no_load = programId || nilStoreProgram.isLoading || nilStoreProgram.isSuccess;
 
   const inputs = letters.map((v, i) => <input
@@ -58,6 +65,35 @@ export default function Wordle({ length = 5, tries = 6 }) {
     disabled
   />)}</div>);
 
+  const { client } = useNillion();
+  const nilCompute = useNilCompute();
+
+  const compute = () => {
+    if (!programId) throw new Error("compute: program id required");
+
+    // hardcoded parties for now
+    const bindings = ProgramBindings.create(programId)
+      .addInputParty(PartyName.parse("Gamemaker"), client.partyId)
+      .addInputParty(PartyName.parse("Player"), client.partyId)
+      .addOutputParty(PartyName.parse("Player"), client.partyId);
+
+    // hardcoded word of the day for now
+    const correctValues = NadaValues.create()
+      .insert(NamedValue.parse("correct_1"), NadaValue.createSecretInteger(65))  // 'A'
+      .insert(NamedValue.parse("correct_2"), NadaValue.createSecretInteger(66))  // 'B'
+      .insert(NamedValue.parse("correct_3"), NadaValue.createSecretInteger(67))  // 'C'
+      .insert(NamedValue.parse("correct_4"), NadaValue.createSecretInteger(68))  // 'D'
+      .insert(NamedValue.parse("correct_5"), NadaValue.createSecretInteger(69)); // 'E'
+
+    // but dynamic guess!
+    const values = letters.reduce((acc, {secret}, i) => acc.insert(
+      NamedValue.parse(`guess_${i + 1}`),
+      NadaValue.createSecretInteger(secret.charCodeAt(0)),
+    ), correctValues);
+
+    nilCompute.execute({ bindings, values });
+  }
+
   return (
     <div className="border border-gray-400 rounded-lg p-4 w-full max-w-md text-center">
       <button
@@ -73,23 +109,17 @@ export default function Wordle({ length = 5, tries = 6 }) {
       <h2 className="text-2xl text-center font-bold mb-3">Display Secret Letters</h2>
       {outputs}
       <hr className="my-5"/>
-      <h2 className="text-2xl text-center font-bold mt-2 mb-3">Store Secret Letters</h2>
+      <h2 className="text-2xl text-center font-bold mt-2 mb-3">Guess Secret Letters</h2>
       {inputs}
       <button
           className={`flex items-center justify-center w-40 px-4 py-2 mt-4 mx-auto text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 ${
             ready_to_store() ? "" : "opacity-50 cursor-not-allowed"
           }`}
-          onClick={() => letters.forEach(({nilStore, secret}, i) => {
-            // FIXME: fails without the timeout; race condition in SDK?
-            setTimeout(
-              () => nilStore.execute({ name: "data", data: secret.charCodeAt(0), ttl: 1 }),
-              i * 200,
-            )
-          })}
+          onClick={compute}
           disabled={!ready_to_store()}
         >
           {!any_loading() ? (
-            <>Store all</>
+            <>Take a guess</>
           ) : (
             <div className="w-5 h-5 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></div>
           )}
