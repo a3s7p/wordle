@@ -1,10 +1,5 @@
 import { WelcomeContent } from "./components/WelcomeContent";
 import { Login } from "./components/Login";
-import StoreValue from "./components/StoreValue";
-import FetchValue from "./components/FetchValue";
-import { StoreProgram } from "./components/StoreProgram";
-import { Compute } from "./components/Compute";
-import { ComputeOutput } from "./components/ComputeOutput";
 import Wordle from "./components/Wordle";
 
 export default function Home() {
@@ -17,20 +12,6 @@ export default function Home() {
             <Wordle />
           </div>
         </Login>
-
-        <div className="my-5 w-full"><hr/></div>
-
-        <div className="flex flex-col gap-4 max-w-4xl mx-auto w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
-            <StoreValue />
-            <FetchValue />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
-            <StoreProgram />
-            <Compute />
-            <ComputeOutput />
-          </div>
-        </div>
       </div>
     </main>
   );
