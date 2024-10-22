@@ -1,40 +1,50 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
-import { ProgramId } from "@nillion/client-core"
+import React, { useContext, useEffect, useState } from "react"
+import {
+  NadaValue,
+  NadaValues,
+  NamedValue,
+  PartyName,
+  ProgramBindings,
+  ProgramId,
+} from "@nillion/client-core"
 import { useNilStoreProgram, useNilCompute, useNillion } from "@nillion/client-react-hooks"
 import { WordleRow } from "./WordleRow"
+import { LoginContext } from "./Login"
 
 export default function Wordle({length = 5, tries = 6}) {
-  // TODO make this generic
-  const nilStoreProgram = useNilStoreProgram()
-  const programPath = "http://localhost:3000/main.nada.bin"
-  const [programId, setProgramId] = useState<ProgramId | null>()
+  const {client} = useNillion()
+  const ctx = useContext(LoginContext)
 
-  // this should only run once and assumes Nillion login is already done by ancestor
-  const storeProgram = () => fetch(programPath).then((v) => v.arrayBuffer()).then((v) => nilStoreProgram.execute({
-    name: "wordle",
-    program: new Uint8Array(v),
-  }))
+  // set up basic Nillion data
+  // hardcoded parties for now
+  const bindings = ProgramBindings.create(ctx.programId)
+    .addInputParty(PartyName.parse("Gamemaker"), client.partyId)
+    .addInputParty(PartyName.parse("Player"), client.partyId)
+    .addOutputParty(PartyName.parse("Player"), client.partyId)
 
-  useEffect(() => {nilStoreProgram.isSuccess && setProgramId(nilStoreProgram.data)}, [nilStoreProgram.isSuccess])
-  const noLoad = programId || nilStoreProgram.isLoading
+  // hardcoded word of the day for now
+  const values = NadaValues.create()
+    .insert(NamedValue.parse("correct_1"), NadaValue.createSecretInteger(65)) // 'A'
+    .insert(NamedValue.parse("correct_2"), NadaValue.createSecretInteger(66)) // 'B'
+    .insert(NamedValue.parse("correct_3"), NadaValue.createSecretInteger(67)) // 'C'
+    .insert(NamedValue.parse("correct_4"), NadaValue.createSecretInteger(68)) // 'D'
+    .insert(NamedValue.parse("correct_5"), NadaValue.createSecretInteger(69)) // 'E'
 
-  const computes = Array.from({length: tries}, () => <WordleRow length={length} programId={programId} />)
+  const [isWordSet, setIsWordSet] = useState(false);
 
   return (
     <div className="border border-gray-400 rounded-lg p-4 w-full max-w-md text-center">
-      <button
-        className={`flex items-center justify-center px-4 py-2 border rounded text-black mb-4 ${
-          noLoad ? "opacity-50 cursor-not-allowed bg-gray-200" : "bg-white hover:bg-gray-100"
-        }`}
-        onClick={storeProgram}
-        disabled={noLoad}
-      >
-        {programId ? "Loaded!" : nilStoreProgram.isLoading ? "Loading program..." : "Load program"}
-      </button>
+      <h2 className="text-2xl text-center font-bold mt-2 mb-3">Set Word</h2>
+      <p>...</p>
       <hr className="my-5"/>
-      {computes}
+      <h2 className="text-2xl text-center font-bold mt-2 mb-3">Guess Word</h2>
+      {isWordSet ? Array.from({length: tries}, () => <WordleRow
+        length={length}
+        bindings={bindings}
+        values={values}
+      />) : <p><i>Please set a word first.</i></p>}
     </div>
   )
 }
