@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@nillion/client-core": "^0.1.0",
+    "@nillion/client-payments": "^0.1.0",
     "@nillion/client-react-hooks": "^0.1.0",
     "next": "14.2.14",
     "react": "^18",
