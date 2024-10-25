@@ -5,8 +5,16 @@ import { useNillionAuth, useNilStoreProgram, UserCredentials } from "@nillion/cl
 import { createContext, FC, ReactNode, useEffect, useState } from "react"
 import { ProgramId } from "@nillion/client-core"
 
-export const LoginContext = createContext({
+export const LoginContext = createContext<{
+  gamemakerId: string,
+  programId: string,
+  wordStoreId: string,
+  isGamemaker: boolean,
+}>({
+  gamemakerId: "",
   programId: "",
+  wordStoreId: "",
+  isGamemaker: false,
 })
 
 export const Login: FC<{children: ReactNode}> = ({children}) => {
@@ -22,6 +30,7 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
   }, [nilStoreProgram.isSuccess])
 
   const {authenticated, login, logout} = useNillionAuth()
+
   // Feel free to set this to other values + useSetState
   const SEED = "example-secret-seed"
   const SECRET_KEY =
@@ -29,7 +38,6 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
 
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingProgram, setIsLoadingProgram] = useState(false)
-  useEffect(() => {console.log("authenticated", authenticated)}, [authenticated])
 
   const handleLogin = async () => {
     try {
@@ -65,30 +73,30 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
     }
   }
 
+  const [isGamemaker, setIsGamemaker] = useState(false)
+
   return (
     <div>
-      <div className="flex-row flex my-6">
-        {authenticated ? (
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={handleLogout}
-            disabled={isLoading}
-          >
-            {isLoading ? "Logging out..." : isLoadingProgram ? "Loading program..." : "Logout"}
-          </button>
-        ) : (
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? "Logging in..." : "Login & load program"}
-          </button>
-        )}
+      <div className="flex-row flex justify-center my-6">
+        <button
+          className={`border border-wheat bg-black hover:bg-${authenticated && programId ? "red" : "green"}-800/50 hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
+          onClick={authenticated ? handleLogout : handleLogin}
+          disabled={isLoading || isLoadingProgram}
+        >
+          {isLoading ? "Loading..." : isLoadingProgram ? "Loading program..." : authenticated ? "Log out" : "Log in"}
+        </button>
       </div>
-      <div className="flex-row flex my-6"> {
+      {authenticated && !(isLoading || isLoadingProgram) ? <div className="flex-row flex justify-center my-6">
+        <button
+          className={`border border-wheat bg-black hover:bg-purple-800/50 hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
+          onClick={() => setIsGamemaker(!isGamemaker)}
+        >
+          Switch role to {isGamemaker ? "player" : "gamemaker"}
+        </button>
+      </div> : <></>}
+      <div className="flex-row flex justify-center my-6"> {
         authenticated && !isLoading && !isLoadingProgram &&
-          <LoginContext.Provider value={{programId}}>{children}</LoginContext.Provider>
+          <LoginContext.Provider value={{programId, isGamemaker}}>{children}</LoginContext.Provider>
       } </div>
     </div>
   )

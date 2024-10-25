@@ -9,7 +9,6 @@ import {
   ProgramBindings,
   StoreId,
   StoreAcl,
-  ProgramId,
 } from "@nillion/client-core"
 import { useNilCompute, useNilComputeOutput, useNillion, useNilStoreValues } from "@nillion/client-react-hooks"
 import { WordleRow } from "./WordleRow"
@@ -19,8 +18,6 @@ export default function Wordle({length = 5, tries = 6}) {
   const {client} = useNillion()
   const ctx = useContext(LoginContext)
 
-  // set up basic Nillion data
-  // hardcoded parties for now
   const bindings = ProgramBindings.create(ctx.programId)
     .addInputParty(PartyName.parse("Gamemaker"), client.partyId)
     .addInputParty(PartyName.parse("Player"), client.partyId)
@@ -117,39 +114,37 @@ export default function Wordle({length = 5, tries = 6}) {
 
   return (
     <div className="border border-gray-400 rounded-lg p-4 w-full max-w-md text-center">
-      <h2 className="text-2xl text-center font-bold mt-2 mb-3">Set Word</h2>
-      <WordleRow
-        key={useId()}
-        active={nilStore.isIdle}
-        chars={wordOfTheDay.map(([c, _]) => c)}
-        onCharAt={(_, x, c) => wordOfTheDay[x][1](c.toUpperCase())}
-      />
-      <div className="flex items-center justify-center mt-3">
-        <button className={`flex items-center justify-center px-4 py-2 border rounded text-black text-center mb-4 ${
-          wordStoreReady()
-            ? "bg-white hover:bg-gray-100"
-            : "opacity-50 cursor-not-allowed bg-gray-200"
-          }`}
-          onClick={storeWord}
-          disabled={!wordStoreReady()}
-        >{
-          wordStoreId
-          ? "Stored!"
-          : nilStore.isLoading
-            ? <div className="w-5 h-5 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></div>
-            : "Store"
-        }</button>
-      </div>
-      <hr className="my-5"/>
-      <h2 className="text-2xl text-center font-bold mt-2 mb-3">Guess Word</h2>
-      <p className={`text-italic mb-3 ${wordStoreId ? "hidden" : ""}`}>Please set the word first.</p>
-      {Array.from({length: tries}, (_, y) => <WordleRow
-        key={useId()}
-        y={y}
-        active={wordStoreId.length > 0 && y == curRow && !(state[y].nilCompute.isLoading || state[y].nilComputeOutput.isLoading)}
-        chars={state[y].chars.map(([c, _]) => c)}
-        onCharAt={(y: number, x: number, c: string) => state[y].chars[x][1](c.toUpperCase())}
-      />)}
+      {ctx.isGamemaker ? <div>
+        <h3 className="text-xl font-bold font-italic mb-3">Word of the Day</h3>
+        <WordleRow
+          active={nilStore.isIdle}
+          chars={wordOfTheDay.map(([c, _]) => c)}
+          onCharAt={(_, x, c) => wordOfTheDay[x][1](c.toUpperCase())}
+        />
+        <div className="flex items-center justify-center mt-3">
+          <button className={`flex items-center justify-center px-3 py-1 border rounded text-black text-center mb-1 ${
+            wordStoreReady()
+              ? "bg-white hover:bg-gray-100"
+              : "opacity-50 cursor-not-allowed bg-gray-200"
+            }`}
+            onClick={storeWord}
+            disabled={!wordStoreReady()}
+          >{
+            wordStoreId
+            ? "Stored!"
+            : nilStore.isLoading
+              ? <div className="w-5 h-5 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></div>
+              : "Store word"
+          }</button>
+        </div>
+      </div> : <div>
+        {Array.from({length: tries}, (_, y) => <WordleRow
+          y={y}
+          active={wordStoreId.length > 0 && y == curRow && !(state[y].nilCompute.isLoading || state[y].nilComputeOutput.isLoading)}
+          chars={state[y].chars.map(([c, _]) => c)}
+          onCharAt={(y: number, x: number, c: string) => state[y].chars[x][1](c.toUpperCase())}
+        />)}
+      </div>}
     </div>
   )
 }
