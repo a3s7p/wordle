@@ -1,55 +1,23 @@
-import { useNilCompute, useNilComputeOutput, useNillion } from "@nillion/client-react-hooks"
-import React, { FC, useContext, useEffect, useState } from "react"
+import React, { FC, useId } from "react"
 
-import {
-  NadaValue,
-  NadaValues,
-  NamedValue,
-  PartyName,
-  ProgramBindings,
-  ProgramId,
-} from "@nillion/client-core"
-import { LoginContext } from "./Login"
-
-// Wordle row input or output component.
+// presentation role only, no state logic here
 
 type Props = {
-  length: number,
-  bindings: ProgramBindings,
-  values: NadaValues,
+  y?: number,
+  active?: boolean,
+  chars: string[],
+  onCharAt: (y: number, x: number, c: string) => void,
 }
 
-export const WordleRow: FC<Props> = ({length, bindings, values}) => {
-  const ctx = useContext(LoginContext)
-  const nilCompute = useNilCompute()
-  const nilComputeOutput = useNilComputeOutput()
-  const cells = Array.from({length}, () => useState(""))
-
-  useEffect(() => {nilCompute.isSuccess && nilComputeOutput.execute({id: nilCompute.data})}, [nilCompute.isSuccess])
-
-  useEffect(() => {if (nilComputeOutput.isSuccess)
-    for (const [k, v] of Object.entries(nilComputeOutput.data))
-      cells[Number(k.split("_").at(-1)) - 1][1](String.fromCharCode(Number(v)))
-  }, [nilComputeOutput.isSuccess])
-
-  useEffect(() => {
-    if (!nilCompute.isIdle)
-      return
-
-    if (cells.find(([c, _]) => !c) !== undefined)
-      return
-
-    nilCompute.execute({bindings, values: cells.reduce((acc, [char, _], i) => acc.insert(
-      NamedValue.parse(`guess_${i + 1}`),
-      NadaValue.createSecretInteger(char?.charCodeAt(0)),
-    ), values)})
-  }, [cells])
-
-  return <div>{cells.map(([char, setChar]) => <input
-    className={"p-2 mx-1 my-1 border border-gray-300 rounded text-black w-[38px] text-center"}
-    value={char || ""}
-    onChange={(e) => setChar(e.target.value.toUpperCase())}
+export const WordleRow: FC<Props> = ({y = 0, active = true, chars, onCharAt}) => {
+  return <div key={useId()}>{chars.map((char, x) => <input
+    className={`p-1 mx-1 my-1 w-[38px] h-[38px] border rounded text-black text-center text-4xl font-extrabold ${
+      active ? "bg-yellow-100 border-gray-500" : "bg-purple-300 border-gray-300"
+    }`}
+    key={useId()}
+    value={char}
+    onChange={(e) => onCharAt(y, x, e.target.value)}
     maxLength={1}
-    disabled={!nilCompute.isIdle}
+    disabled={!active}
   />)}</div>
 }

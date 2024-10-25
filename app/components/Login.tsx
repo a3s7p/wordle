@@ -3,14 +3,7 @@
 import { createSignerFromKey } from "@nillion/client-payments"
 import { useNillionAuth, useNilStoreProgram, UserCredentials } from "@nillion/client-react-hooks"
 import { createContext, FC, ReactNode, useEffect, useState } from "react"
-import {
-  NadaValue,
-  NadaValues,
-  NamedValue,
-  PartyName,
-  ProgramBindings,
-  ProgramId,
-} from "@nillion/client-core"
+import { ProgramId } from "@nillion/client-core"
 
 export const LoginContext = createContext({
   programId: "",
