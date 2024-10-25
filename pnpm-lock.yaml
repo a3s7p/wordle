@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@nillion/client-core':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@nillion/client-react-hooks':
         specifier: ^0.1.0
         version: 0.1.0
