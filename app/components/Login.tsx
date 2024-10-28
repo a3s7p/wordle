@@ -98,7 +98,12 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
       </div> : <></>}
       <div className="flex-row flex justify-center my-6"> {
         authenticated && !isLoading && !isLoadingProgram &&
-          <LoginContext.Provider value={{programId, isGamemaker}}>{children}</LoginContext.Provider>
+          <LoginContext.Provider value={{
+            programId,
+            gamemakerId,
+            wordStoreId,
+            isGamemaker,
+          }}>{children}</LoginContext.Provider>
       } </div>
     </div>
   )

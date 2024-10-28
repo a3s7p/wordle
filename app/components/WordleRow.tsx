@@ -1,11 +1,9 @@
 import React, { ChangeEvent, FC, useEffect, useId, useRef } from "react"
 
-// presentation role only, no state logic here
-
 type Props = {
   y?: number,
   active?: boolean,
-  chars: string[],
+  chars: [string, boolean | undefined][],
   onCharAt: (y: number, x: number, c: string) => void,
 }
 
@@ -26,10 +24,16 @@ export const WordleRow: FC<Props> = ({y = 0, active = true, chars, onCharAt}) =>
     (refs[0].current as any).focus()
   }, [active])
 
-  const inputs = chars.map((char, x) => <input
+  const inputs = chars.map(([char, isCorrect], x) => <input
     ref={refs[x]}
-    className={`p-1 mx-1 my-1 w-[38px] h-[38px] border rounded text-black text-center text-4xl font-extrabold ${
-      active ? "bg-yellow-100 border-gray-500" : "bg-purple-300 border-gray-300"
+    className={`mx-1 my-1 w-[40px] h-[40px] text-black text-center text-3xl font-extrabold ${
+      isCorrect !== undefined
+      ? isCorrect === true
+        ? "bg-green-300"
+        : "bg-red-300"
+      : active
+        ? "bg-yellow-100"
+        : "bg-purple-200"
     }`}
     key={useId()}
     value={char}

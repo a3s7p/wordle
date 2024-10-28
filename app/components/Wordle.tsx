@@ -10,6 +10,7 @@ import {
   StoreId,
   StoreAcl,
   PartyId,
+  ProgramId,
 } from "@nillion/client-core"
 import { useNilCompute, useNilComputeOutput, useNillion, useNilStoreValues } from "@nillion/client-react-hooks"
 import { WordleRow } from "./WordleRow"
@@ -20,10 +21,10 @@ export default function Wordle({length = 5, tries = 6}) {
   const ctx = useContext(LoginContext)
 
   // TODO add confetti
-  const winGame = () => window.alert("YOU WON")
-  const loseGame = () => window.alert("YOU LOST")
+  const [gameWon, setGameWon] = useState<boolean>()
 
-  const isFilled = (chars: [string, any][]) => chars.find(([c, _]) => !c) === undefined
+  const winGame = () => setGameWon(true)
+  const loseGame = () => setGameWon(false)
 
   // gamemaker input
   const nilStore = useNilStoreValues()
@@ -39,11 +40,11 @@ export default function Wordle({length = 5, tries = 6}) {
         NadaValue.createSecretInteger(c?.charCodeAt(0)),
       ), NadaValues.create()),
       ttl: (1 as any),
-      acl: StoreAcl.create().allowCompute([client.userId], ctx.programId as any),
+      acl: StoreAcl.create().allowCompute([client.userId], ctx.programId as ProgramId),
     })
   }
 
-  const wordStoreReady = () => nilStore.isIdle && isFilled(wordOfTheDay)
+  const wordStoreReady = () => nilStore.isIdle && wordOfTheDay.every(([c, _]) => c)
 
   // player input
   // 2D state array of rows x cols for letters
@@ -52,7 +53,12 @@ export default function Wordle({length = 5, tries = 6}) {
   const state = Array.from({length: tries}, (_, y) => {
     const nilCompute = useNilCompute()
     const nilComputeOutput = useNilComputeOutput()
-    const chars = Array.from({length}, () => useState(""))
+    const chars = Array.from({length}, () => {
+      const [isCorrect, setIsCorrect] = useState<boolean>()
+      const [char, setChar] = useState("")
+
+      return {char, setChar, isCorrect, setIsCorrect}
+    })
 
     const [status, setStatus] = useState("idle")
 
@@ -60,17 +66,15 @@ export default function Wordle({length = 5, tries = 6}) {
 
     useEffect(() => {if (nilComputeOutput.isSuccess) {
       const letters = Object.entries(nilComputeOutput.data).sort()
-      chars.forEach(([_, setChar]) => setChar("-"))
-
-      if (letters.filter(([_, c]) => Number(c) !== 0).length === length)
+      if (letters.every(([_, c]) => Number(c) !== 0))
         setStatus("computed_correct")
       else
         setStatus("computed")
 
-      letters.forEach(([_, c], x) => c != 0 && chars[x][1](String.fromCharCode(Number(c))))
+      letters.forEach(([_, c], x) => chars[x].setIsCorrect(c != 0))
     }}, [nilComputeOutput.isSuccess])
 
-    const wasFilled = () => status == "idle" && isFilled(chars)
+    const wasFilled = () => status == "idle" && chars.every(({char}) => char)
 
     useEffect(() => {checkStatus(y)}, [status])
     useEffect(() => {wasFilled() && setStatus("guessed")}, [chars])
@@ -84,31 +88,28 @@ export default function Wordle({length = 5, tries = 6}) {
 
     switch (row.status) {
       case "guessed":
-        row.chars.forEach(([_, setChar]) => setChar("?"))
-
         const bindings = ProgramBindings.create(ctx.programId)
-          .addInputParty(PartyName.parse("Gamemaker"), ctx.gamemakerId as PartyId)
+          .addInputParty(PartyName.parse("Gamemaker"), client.partyId)
           .addInputParty(PartyName.parse("Player"), client.partyId)
           .addOutputParty(PartyName.parse("Player"), client.partyId)
 
         row.nilCompute.execute({
           bindings,
-          values: row.chars.reduce((acc, [c, _], i) => acc.insert(
+          values: row.chars.reduce((acc, {char}, i) => acc.insert(
             NamedValue.parse(`guess_${i + 1}`),
-            NadaValue.createSecretInteger(c?.charCodeAt(0)),
+            NadaValue.createSecretInteger(char.charCodeAt(0)),
           ), NadaValues.create()),
           storeIds: [wordStoreId],
-          })
+        })
         break
       case "computed":
         if (curRow + 1 >= tries)
-          // hacky schedule after row re-render with new state
-          setTimeout(() => loseGame(), 1000)
+          loseGame()
         setCurRow(curRow + 1)
         break
       case "computed_correct":
-        // hacky schedule after row re-render with new state
-        setTimeout(() => winGame(), 1000)
+        winGame()
+        setCurRow(-1)
         break
     }
   }
@@ -116,10 +117,10 @@ export default function Wordle({length = 5, tries = 6}) {
   return (
     <div className="border border-gray-400 rounded-lg p-4 w-full max-w-md text-center">
       {ctx.isGamemaker ? <div>
-        <h3 className="text-xl font-bold font-italic mb-3">Word of the Day</h3>
+        <h3 className="text-xl font-bold mb-3">Word of the Day</h3>
         <WordleRow
           active={nilStore.isIdle}
-          chars={wordOfTheDay.map(([c, _]) => c)}
+          chars={wordOfTheDay.map(([c, _]) => [c, undefined])}
           onCharAt={(_, x, c) => wordOfTheDay[x][1](c.toUpperCase())}
         />
         <div className="flex items-center justify-center mt-3">
@@ -139,11 +140,12 @@ export default function Wordle({length = 5, tries = 6}) {
           }</button>
         </div>
       </div> : <div>
+        {gameWon !== undefined && <h3 className="text-xl font-bold uppercase mb-5">you {gameWon ? "win" : "lose"}!</h3>}
         {Array.from({length: tries}, (_, y) => <WordleRow
           y={y}
           active={wordStoreId.length > 0 && y == curRow && !(state[y].nilCompute.isLoading || state[y].nilComputeOutput.isLoading)}
-          chars={state[y].chars.map(([c, _]) => c)}
-          onCharAt={(y: number, x: number, c: string) => state[y].chars[x][1](c.toUpperCase())}
+          chars={state[y].chars.map(({char, isCorrect}) => [char, isCorrect])}
+          onCharAt={(y: number, x: number, c: string) => state[y].chars[x].setChar(c.toUpperCase())}
         />)}
       </div>}
     </div>
