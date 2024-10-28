@@ -3,7 +3,7 @@
 import { createSignerFromKey } from "@nillion/client-payments"
 import { useNillionAuth, useNilStoreProgram, UserCredentials } from "@nillion/client-react-hooks"
 import { createContext, FC, ReactNode, useEffect, useState } from "react"
-import { ProgramId } from "@nillion/client-core"
+import { ProgramId, UserId } from "@nillion/client-core"
 
 export const LoginContext = createContext<{
   gamemakerId: string,
@@ -22,10 +22,17 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
   const nilStoreProgram = useNilStoreProgram()
   const programPath = "http://localhost:3000/main.nada.bin"
 
+  const [gamemakerId, setGamemakerId] = useState<UserId | string>("")
   const [programId, setProgramId] = useState<ProgramId | string>("")
+  const [wordStoreId, setWordStoreId] = useState<ProgramId | string>("")
+  const [isGamemaker, setIsGamemaker] = useState(false)
 
-  useEffect(() => {if (nilStoreProgram.isSuccess)
-    setProgramId(nilStoreProgram.data)
+  // setProgramId, setIsGamemaker => login
+  // setGamemakerId, setWordStoreId => gamemaker
+
+  useEffect(() => {
+    if (nilStoreProgram.isSuccess)
+      setProgramId(nilStoreProgram.data)
     setIsLoadingProgram(false)
   }, [nilStoreProgram.isSuccess])
 
@@ -73,13 +80,11 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
     }
   }
 
-  const [isGamemaker, setIsGamemaker] = useState(false)
-
   return (
     <div>
       <div className="flex-row flex justify-center my-6">
         <button
-          className={`border border-wheat bg-black hover:bg-${authenticated && programId ? "red" : "green"}-800/50 hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
+          className={`border border-wheat bg-black ${(authenticated && programId) ? "hover:bg-red-800/50" : "hover:bg-green-800/50"} hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
           onClick={authenticated ? handleLogout : handleLogin}
           disabled={isLoading || isLoadingProgram}
         >

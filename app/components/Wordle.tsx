@@ -102,8 +102,7 @@ export default function Wordle({length = 5, tries = 6}) {
         if (curRow + 1 >= tries)
           // hacky schedule after row re-render with new state
           setTimeout(() => loseGame(), 1000)
-        else
-          setCurRow(curRow + 1)
+        setCurRow(curRow + 1)
         break
       case "computed_correct":
         // hacky schedule after row re-render with new state
@@ -122,7 +121,7 @@ export default function Wordle({length = 5, tries = 6}) {
           onCharAt={(_, x, c) => wordOfTheDay[x][1](c.toUpperCase())}
         />
         <div className="flex items-center justify-center mt-3">
-          <button className={`flex items-center justify-center px-3 py-1 border rounded text-black text-center mb-1 ${
+          <button className={`flex items-center justify-center px-3 py-1 border rounded text-black text-center my-1 ${
             wordStoreReady()
               ? "bg-white hover:bg-gray-100"
               : "opacity-50 cursor-not-allowed bg-gray-200"
