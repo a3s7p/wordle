@@ -3,18 +3,18 @@
 import { createSignerFromKey } from "@nillion/client-payments"
 import { useNillionAuth, useNilStoreProgram, UserCredentials } from "@nillion/client-react-hooks"
 import { createContext, FC, ReactNode, useEffect, useState } from "react"
-import { ProgramId, UserId } from "@nillion/client-core"
+import { PartyId, ProgramId, StoreId, UserId } from "@nillion/client-core"
 
 export const LoginContext = createContext<{
-  gamemakerId: string,
-  programId: string,
-  wordStoreId: string,
+  gamemakerId: PartyId | string,
+  programId: ProgramId | string,
+  wordStoreId: StoreId | string,
   isGamemaker: boolean,
 }>({
   gamemakerId: "",
   programId: "",
   wordStoreId: "",
-  isGamemaker: false,
+  isGamemaker: true,
 })
 
 export const Login: FC<{children: ReactNode}> = ({children}) => {
@@ -24,11 +24,8 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
 
   const [gamemakerId, setGamemakerId] = useState<UserId | string>("")
   const [programId, setProgramId] = useState<ProgramId | string>("")
-  const [wordStoreId, setWordStoreId] = useState<ProgramId | string>("")
-  const [isGamemaker, setIsGamemaker] = useState(false)
-
-  // setProgramId, setIsGamemaker => login
-  // setGamemakerId, setWordStoreId => gamemaker
+  const [wordStoreId, setWordStoreId] = useState<StoreId | string>("")
+  const [isGamemaker, setIsGamemaker] = useState(true)
 
   useEffect(() => {
     if (nilStoreProgram.isSuccess)

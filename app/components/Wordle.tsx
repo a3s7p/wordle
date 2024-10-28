@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useContext, useEffect, useId, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import {
   NadaValue,
   NadaValues,
@@ -9,6 +9,7 @@ import {
   ProgramBindings,
   StoreId,
   StoreAcl,
+  PartyId,
 } from "@nillion/client-core"
 import { useNilCompute, useNilComputeOutput, useNillion, useNilStoreValues } from "@nillion/client-react-hooks"
 import { WordleRow } from "./WordleRow"
@@ -17,11 +18,6 @@ import { LoginContext } from "./Login"
 export default function Wordle({length = 5, tries = 6}) {
   const {client} = useNillion()
   const ctx = useContext(LoginContext)
-
-  const bindings = ProgramBindings.create(ctx.programId)
-    .addInputParty(PartyName.parse("Gamemaker"), client.partyId)
-    .addInputParty(PartyName.parse("Player"), client.partyId)
-    .addOutputParty(PartyName.parse("Player"), client.partyId)
 
   // TODO add confetti
   const winGame = () => window.alert("YOU WON")
@@ -89,6 +85,12 @@ export default function Wordle({length = 5, tries = 6}) {
     switch (row.status) {
       case "guessed":
         row.chars.forEach(([_, setChar]) => setChar("?"))
+
+        const bindings = ProgramBindings.create(ctx.programId)
+          .addInputParty(PartyName.parse("Gamemaker"), ctx.gamemakerId as PartyId)
+          .addInputParty(PartyName.parse("Player"), client.partyId)
+          .addOutputParty(PartyName.parse("Player"), client.partyId)
+
         row.nilCompute.execute({
           bindings,
           values: row.chars.reduce((acc, [c, _], i) => acc.insert(
