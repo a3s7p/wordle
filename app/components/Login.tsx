@@ -1,7 +1,6 @@
 "use client"
 
-import { createSignerFromKey } from "@nillion/client-payments"
-import { useNillionAuth, useNilStoreProgram, UserCredentials } from "@nillion/client-react-hooks"
+import { useNillionAuth, useNilStoreProgram } from "@nillion/client-react-hooks"
 import { createContext, FC, ReactNode, useEffect, useState } from "react"
 import { PartyId, ProgramId, StoreId, UserId } from "@nillion/client-core"
 
@@ -35,24 +34,13 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
 
   const {authenticated, login, logout} = useNillionAuth()
 
-  // Feel free to set this to other values + useSetState
-  const SEED = "example-secret-seed"
-  const SECRET_KEY =
-    "9a975f567428d054f2bf3092812e6c42f901ce07d9711bc77ee2cd81101f42c5"
-
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingProgram, setIsLoadingProgram] = useState(false)
 
   const handleLogin = async () => {
     try {
       setIsLoading(true)
-
-      const credentials: UserCredentials = {
-        userSeed: SEED,
-        signer: () => createSignerFromKey(SECRET_KEY),
-      }
-
-      await login(credentials)
+      await login({userSeed: "wordle-user-seed"})
 
       setIsLoadingProgram(true)
       nilStoreProgram.execute({
@@ -81,16 +69,16 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
     <div>
       <div className="flex-row flex justify-center my-6">
         <button
-          className={`border border-wheat bg-black ${(authenticated && programId) ? "hover:bg-red-800/50" : "hover:bg-green-800/50"} hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
+          className={`border border-white bg-black ${(authenticated && programId) ? "hover:bg-red-800/50" : "hover:bg-green-800/50"} hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
           onClick={authenticated ? handleLogout : handleLogin}
           disabled={isLoading || isLoadingProgram}
         >
-          {isLoading ? "Loading..." : isLoadingProgram ? "Loading program..." : authenticated ? "Log out" : "Log in"}
+          {isLoading ? "Loading..." : isLoadingProgram ? "Loading program..." : authenticated ? "Log out" : "Log in with Keplr"}
         </button>
       </div>
       {authenticated && !(isLoading || isLoadingProgram) ? <div className="flex-row flex justify-center my-6">
         <button
-          className={`border border-wheat bg-black hover:bg-purple-800/50 hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
+          className={`border border-white bg-black hover:bg-purple-800/50 hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
           onClick={() => setIsGamemaker(!isGamemaker)}
         >
           Switch role to {isGamemaker ? "player" : "gamemaker"}
