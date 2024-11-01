@@ -1,6 +1,6 @@
 "use client"
 
-import React, { FC, MouseEvent, MouseEventHandler, useEffect, useState } from "react"
+import React, { FC, MouseEventHandler, useId, useState } from "react"
 import {
   NadaValue,
   NadaValues,
@@ -8,6 +8,7 @@ import {
   StoreAcl,
   ProgramId,
   UserId,
+  Days,
 } from "@nillion/client-core"
 import { useNilStoreProgram, useNilStoreValues } from "@nillion/client-react-hooks"
 import { WordleRow } from "./WordleRow"
@@ -35,7 +36,8 @@ const StoreProgram = () => {
   // assume the program is in public/wordle.nada.bin
   const programPath = `${window.location.href}/${PROGRAM_FILENAME}`
 
-  useEffect(() => {nilStoreProgram.isSuccess && wordleDispatch({type: "programId", value: nilStoreProgram.data})}, [nilStoreProgram.isSuccess])
+  if (nilStoreProgram.isSuccess)
+    wordleDispatch({type: "programId", value: nilStoreProgram.data})
 
   const storeProgram = async () => nilStoreProgram.execute({
     name: "wordle",
@@ -67,17 +69,18 @@ const StoreWord = () => {
   const wordleDispatch = useWordleDispatch()
 
   const nilStore = useNilStoreValues()
-  const word = Array.from({length: wordle.length}, () => useState(""))
+  const [chars, setChars] = useState(Array.from({length: wordle.length}, () => ""))
 
-  useEffect(() => {nilStore.isSuccess && wordleDispatch({type: "gmStoreId", value: nilStore.data})}, [nilStore.isSuccess])
+  if (nilStore.isSuccess)
+    wordleDispatch({type: "gmStoreId", value: nilStore.data})
 
   const storeWord = () => {
     nilStore.execute({
-      values: word.reduce((acc, [c, _], i) => acc.insert(
+      values: chars.reduce((acc, c, i) => acc.insert(
         NamedValue.parse(`correct_${i + 1}`),
         NadaValue.createSecretInteger(c?.charCodeAt(0)),
       ), NadaValues.create()),
-      ttl: (1 as any),
+      ttl: 8 as Days,
       acl: StoreAcl.create().allowCompute([wordle.playerUserId as UserId], wordle.programId as ProgramId),
     })
   }
@@ -85,8 +88,8 @@ const StoreWord = () => {
   return (<div>
     <WordleRow
       active={nilStore.isIdle}
-      chars={word.map(([c, _]) => [c, undefined])}
-      onCharAt={(_, x, c) => word[x][1](c.toUpperCase())}
+      chars={chars}
+      onCharAt={(x, c) => setChars(chars.map((v, i) => i === x ? c.toUpperCase() : v))}
     />
     <div className="flex items-center justify-center mt-3">
       <button className={`flex items-center justify-center px-3 py-1 border rounded text-black text-center my-1 ${
@@ -95,7 +98,7 @@ const StoreWord = () => {
           : "bg-white hover:bg-gray-100"
         }`}
         onClick={storeWord}
-        disabled={!nilStore.isIdle || !word.every(([c, _]) => c)}
+        disabled={!nilStore.isIdle || !chars.every((c) => c)}
       >{
         nilStore.isSuccess
         ? "Stored!"
@@ -139,16 +142,17 @@ const Final = () => {
 }
 
 export default function WordleGamemakerWizard() {
+  const key = useId()
   const wordle = useWordle()
   const [step, setStep] = useState(0)
 
   const steps = [
-    <Intro onClick={() => setStep(1)} />,
-    <StoreProgram />,
-    <StoreWord />,
-    <Final />,
-  ].map((content, i, all) => <div className="mb-3">
-    <div className="text-2xl font-bold mb-3">Step {i + 1}/{all.length}</div>
+    <Intro key={`${key}-intro`} onClick={() => setStep(1)} />,
+    <StoreProgram key={`${key}-program`} />,
+    <StoreWord key={`${key}-word`} />,
+    <Final key={`${key}-final`} />,
+  ].map((content, i, all) => <div key={`${key}-${i + 1}-outer`} className="mb-3">
+    <div key={`${key}-${i + 1}-inner`} className="text-2xl font-bold mb-3">Step {i + 1}/{all.length}</div>
     {content}
   </div>)
 
