@@ -1,52 +1,52 @@
 "use client"
 
-import { useNillionAuth, useNilStoreProgram } from "@nillion/client-react-hooks"
-import { createContext, FC, ReactNode, useEffect, useState } from "react"
-import { PartyId, ProgramId, StoreId, UserId } from "@nillion/client-core"
+import {useNillion, useNillionAuth} from "@nillion/client-react-hooks"
+import {useState} from "react"
 
-export const LoginContext = createContext<{
-  gamemakerId: PartyId | string,
-  programId: ProgramId | string,
-  wordStoreId: StoreId | string,
-  isGamemaker: boolean,
-}>({
-  gamemakerId: "",
-  programId: "",
-  wordStoreId: "",
-  isGamemaker: true,
-})
+import Wordle from "./Wordle"
+import WordleGamemakerWizard from "./WordleGamemaker"
+import { UserSeed } from "@nillion/client-core"
+import { useWordle, useWordleDispatch } from "./WordleContext"
 
-export const Login: FC<{children: ReactNode}> = ({children}) => {
-  // TODO make this generic
-  const nilStoreProgram = useNilStoreProgram()
-  const programPath = "http://localhost:3000/main.nada.bin"
-
-  const [gamemakerId, setGamemakerId] = useState<UserId | string>("")
-  const [programId, setProgramId] = useState<ProgramId | string>("")
-  const [wordStoreId, setWordStoreId] = useState<StoreId | string>("")
-  const [isGamemaker, setIsGamemaker] = useState(true)
-
-  useEffect(() => {
-    if (nilStoreProgram.isSuccess)
-      setProgramId(nilStoreProgram.data)
-    setIsLoadingProgram(false)
-  }, [nilStoreProgram.isSuccess])
-
+export default function Login() {
+  const wordle = useWordle()
+  const wordleDispatch = useWordleDispatch()
+  const {client} = useNillion()
   const {authenticated, login, logout} = useNillionAuth()
-
   const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingProgram, setIsLoadingProgram] = useState(false)
 
   const handleLogin = async () => {
     try {
       setIsLoading(true)
-      await login({userSeed: "wordle-user-seed"})
+      let playerSeed = wordle.playerSeed
 
-      setIsLoadingProgram(true)
-      nilStoreProgram.execute({
-        name: "wordle",
-        program: new Uint8Array(await (await fetch(programPath)).arrayBuffer())
-      })
+      if (wordle.gmSeed) {
+        // log in to get future player UID -- is there a better way?..
+        if (!playerSeed)
+          playerSeed = crypto.randomUUID()
+
+        await login({userSeed: playerSeed as UserSeed})
+        wordleDispatch({type: "playerUserId", value: client.userId})
+        await logout()
+        // log in as gm
+        await login({userSeed: wordle.gmSeed})
+        wordleDispatch({type: "playerSeed", value: playerSeed})
+        wordleDispatch({type: "gmPartyId", value: client.partyId})
+      } else {
+        // actually log in as player
+        const need = {
+           NEXT_PUBLIC_WORDLE_PROGRAM_ID: playerSeed,
+           NEXT_PUBLIC_WORDLE_PLAYER_USER_SEED: wordle.programId,
+           NEXT_PUBLIC_WORDLE_GAMEMAKER_STORE_ID: wordle.gmStoreId,
+           NEXT_PUBLIC_WORDLE_GAMEMAKER_PARTY_ID: wordle.gmPartyId,
+        }
+
+        for (const [k, v] of Object.entries(need))
+          if (!v)
+            throw new Error(`${k} is unset; cannot play Wordle without it!`)
+
+        await login({userSeed: playerSeed as UserSeed})
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -66,33 +66,26 @@ export const Login: FC<{children: ReactNode}> = ({children}) => {
   }
 
   return (
-    <div>
-      <div className="flex-row flex justify-center my-6">
-        <button
-          className={`border border-white bg-black ${(authenticated && programId) ? "hover:bg-red-800/50" : "hover:bg-green-800/50"} hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
-          onClick={authenticated ? handleLogout : handleLogin}
-          disabled={isLoading || isLoadingProgram}
-        >
-          {isLoading ? "Loading..." : isLoadingProgram ? "Loading program..." : authenticated ? "Log out" : "Log in with Keplr"}
-        </button>
+    <div className="w-full flex flex-col items-center max-w-4xl mx-auto mb-5">
+      <div>
+        {authenticated || <div className="my-5">
+          <p className="font-bold mb-3">To play you will need:</p>
+          <ul className="list-disc list-inside">
+            <li>Keplr wallet with testnet chain <a className="font-bold target-blank" href="https://docs.nillion.com/guide-testnet-connect" target="_blank">(?)</a></li>
+            <li>Some NIL <a className="font-bold" href="https://docs.nillion.com/guide-testnet-faucet" target="_blank">(?)</a></li>
+          </ul>
+        </div>}
+        <div className="flex-row flex justify-center mt-3">
+          <button
+            className={`border border-white bg-black ${authenticated ? "hover:bg-red-800/50" : "hover:bg-green-800/50"} hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
+            onClick={authenticated ? handleLogout : handleLogin}
+            disabled={isLoading}
+          >{isLoading ? "Loading..." : authenticated ? "Log out" : `Log in ${wordle.gmSeed ? "as gamemaker" : ""} with Keplr`}</button>
+        </div>
+        <div className="flex-row flex justify-center my-6">
+          {authenticated && !isLoading && (wordle.gmSeed ? <WordleGamemakerWizard /> : <Wordle />)}
+        </div>
       </div>
-      {authenticated && !(isLoading || isLoadingProgram) ? <div className="flex-row flex justify-center my-6">
-        <button
-          className={`border border-white bg-black hover:bg-purple-800/50 hover:shadow-md hover:shadow-neutral-500 text-white font-bold py-1 px-3 rounded`}
-          onClick={() => setIsGamemaker(!isGamemaker)}
-        >
-          Switch role to {isGamemaker ? "player" : "gamemaker"}
-        </button>
-      </div> : <></>}
-      <div className="flex-row flex justify-center my-6"> {
-        authenticated && !isLoading && !isLoadingProgram &&
-          <LoginContext.Provider value={{
-            programId,
-            gamemakerId,
-            wordStoreId,
-            isGamemaker,
-          }}>{children}</LoginContext.Provider>
-      } </div>
     </div>
   )
 }
