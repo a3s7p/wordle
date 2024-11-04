@@ -15,13 +15,14 @@ import {
 } from "@nillion/client-react-hooks"
 import {FC, useId, useState} from "react"
 
-import {useWordle, useWordleDispatch} from "./WordleContext"
+import {useWordle} from "./WordleContext"
 import WordleRow from "./WordleRow"
+import {useWordleSessionDispatch} from "./WordleSessionContext"
 
 const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   const key = useId()
   const wordle = useWordle()
-  const wordleDispatch = useWordleDispatch()
+  const wordleSessionDispatch = useWordleSessionDispatch()
   const {client} = useNillion()
   const nilCompute = useNilCompute()
   const nilComputeOutput = useNilComputeOutput()
@@ -61,10 +62,9 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
     setCorrectMap(newCorrectMap)
 
     setTimeout(() =>
-      wordleDispatch({
-        type: newCorrectMap.every((b) => b) ? "winGame" : "nextRow",
-        value: "",
-      }),
+      wordleSessionDispatch(
+        newCorrectMap.every((b) => b) ? "winGame" : "nextRow",
+      ),
     )
   }
 

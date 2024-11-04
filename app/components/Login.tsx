@@ -7,6 +7,7 @@ import Wordle from "./Wordle"
 import WordleGamemakerWizard from "./WordleGamemaker"
 import {UserSeed} from "@nillion/client-core"
 import {useWordle, useWordleDispatch} from "./WordleContext"
+import {WordleSessionProvider} from "./WordleSessionContext"
 
 export default function Login() {
   const wordle = useWordle()
@@ -116,7 +117,13 @@ export default function Login() {
         <div className="flex-row flex justify-center my-6">
           {authenticated &&
             !isLoading &&
-            (wordle.gmSeed ? <WordleGamemakerWizard /> : <Wordle />)}
+            (wordle.gmSeed ? (
+              <WordleGamemakerWizard />
+            ) : (
+              <WordleSessionProvider>
+                <Wordle />
+              </WordleSessionProvider>
+            ))}
         </div>
       </div>
     </div>

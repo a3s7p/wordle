@@ -15,8 +15,6 @@ type WordleAction = {type: string; value: string}
 const defaultContext = {
   tries: 6,
   length: 5,
-  index: 0,
-  gameWon: false,
   programId: process.env.NEXT_PUBLIC_WORDLE_PROGRAM_ID,
   gmSeed: process.env.NEXT_PUBLIC_WORDLE_GAMEMAKER_USER_SEED,
   gmPartyId: process.env.NEXT_PUBLIC_WORDLE_GAMEMAKER_PARTY_ID,
@@ -45,6 +43,7 @@ const WordleDispatchContext = createContext(defaultDispatch)
 export function useWordle() {
   return useContext(WordleContext)
 }
+
 export function useWordleDispatch() {
   return useContext(WordleDispatchContext)
 }
@@ -66,12 +65,6 @@ const stateReducer: Reducer<typeof defaultContext, WordleAction> = (
   action,
 ) => {
   switch (action.type) {
-    case "nextRow": {
-      return {...state, index: state.index + 1}
-    }
-    case "winGame": {
-      return {...state, gameWon: true}
-    }
     case "gmPartyId": {
       return {...state, gmPartyId: action.value}
     }
