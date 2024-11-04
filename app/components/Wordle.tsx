@@ -1,8 +1,9 @@
 "use client"
 
 import React, { useId } from "react"
-import { WordleRowCompute } from "./WordleRow"
+
 import { useWordle } from "./WordleContext"
+import WordleRowCompute from "./WordleRowCompute"
 
 export default function Wordle() {
   const key = useId()

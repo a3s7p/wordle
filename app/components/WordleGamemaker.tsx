@@ -11,8 +11,8 @@ import {
   Days,
 } from "@nillion/client-core"
 import { useNilStoreProgram, useNilStoreValues } from "@nillion/client-react-hooks"
-import { WordleRow } from "./WordleRow"
 import { useWordle, useWordleDispatch } from "./WordleContext"
+import WordleRow from "./WordleRow"
 
 const PROGRAM_FILENAME = "wordle.nada.bin"
 
