@@ -34,7 +34,7 @@ const StoreProgram = () => {
   const nilStoreProgram = useNilStoreProgram()
 
   // assume the program is in public/wordle.nada.bin
-  const programPath = `${window.location.href}/${PROGRAM_FILENAME}`
+  const programPath = `${window.location.origin}/${PROGRAM_FILENAME}`
 
   if (nilStoreProgram.isSuccess)
     wordleDispatch({type: "programId", value: nilStoreProgram.data})
