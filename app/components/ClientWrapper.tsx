@@ -7,5 +7,6 @@ import { NillionProvider } from "@nillion/client-react-hooks";
 export const ClientWrapper: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  return <NillionProvider network="photon">{children}</NillionProvider>;
+  const network = process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ? "photon" : "devnet"
+  return <NillionProvider network={network}>{children}</NillionProvider>;
 };
