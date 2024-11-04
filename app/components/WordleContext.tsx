@@ -1,8 +1,16 @@
 "use client"
 
-import React, { createContext, Dispatch, FC, ReactNode, Reducer, useContext, useReducer } from 'react'
+import React, {
+  createContext,
+  Dispatch,
+  FC,
+  ReactNode,
+  Reducer,
+  useContext,
+  useReducer,
+} from "react"
 
-type WordleAction = {type: string, value: string}
+type WordleAction = {type: string; value: string}
 
 const defaultContext = {
   tries: 6,
@@ -19,21 +27,27 @@ const defaultContext = {
 
 const defaultDispatch: Dispatch<WordleAction> = (action) => {
   switch (action.type) {
-    case 'gmPartyId':
-    case 'gmStoreId':
-    case 'programId':
-    case 'playerSeed':
-    case 'playerUserId':
+    case "gmPartyId":
+    case "gmStoreId":
+    case "programId":
+    case "playerSeed":
+    case "playerUserId":
       break
-    default: { throw Error('Unknown action: ' + action.type) }
+    default: {
+      throw Error("Unknown action: " + action.type)
+    }
   }
 }
 
 const WordleContext = createContext(defaultContext)
 const WordleDispatchContext = createContext(defaultDispatch)
 
-export function useWordle() {return useContext(WordleContext)}
-export function useWordleDispatch() {return useContext(WordleDispatchContext)}
+export function useWordle() {
+  return useContext(WordleContext)
+}
+export function useWordleDispatch() {
+  return useContext(WordleDispatchContext)
+}
 
 export const WordleProvider: FC<{children: ReactNode}> = ({children}) => {
   const [state, dispatch] = useReducer(stateReducer, defaultContext)
@@ -47,15 +61,34 @@ export const WordleProvider: FC<{children: ReactNode}> = ({children}) => {
   )
 }
 
-const stateReducer: Reducer<typeof defaultContext, WordleAction> = (state, action) => {
+const stateReducer: Reducer<typeof defaultContext, WordleAction> = (
+  state,
+  action,
+) => {
   switch (action.type) {
-    case 'nextRow': {return {...state, index: state.index + 1}}
-    case 'winGame': {return {...state, gameWon: true}}
-    case 'gmPartyId': {return {...state, gmPartyId: action.value }}
-    case 'gmStoreId': {return {...state, gmStoreId: action.value }}
-    case 'programId': {return {...state, programId: action.value }}
-    case 'playerSeed': {return {...state, playerSeed: action.value}}
-    case 'playerUserId': {return {...state, playerUserId: action.value}}
-    default: {throw Error('Unknown action: ' + action.type)}
+    case "nextRow": {
+      return {...state, index: state.index + 1}
+    }
+    case "winGame": {
+      return {...state, gameWon: true}
+    }
+    case "gmPartyId": {
+      return {...state, gmPartyId: action.value}
+    }
+    case "gmStoreId": {
+      return {...state, gmStoreId: action.value}
+    }
+    case "programId": {
+      return {...state, programId: action.value}
+    }
+    case "playerSeed": {
+      return {...state, playerSeed: action.value}
+    }
+    case "playerUserId": {
+      return {...state, playerUserId: action.value}
+    }
+    default: {
+      throw Error("Unknown action: " + action.type)
+    }
   }
 }
