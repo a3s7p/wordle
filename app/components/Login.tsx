@@ -65,6 +65,10 @@ export default function Login() {
     }
   }
 
+  if (!wordle.gmSeed && !wordle.playerSeed) {
+    throw Error('Set either NEXT_PUBLIC_WORDLE_GAMEMAKER_USER_SEED or the player envvars!')
+  }
+
   return (
     <div className="w-full flex flex-col items-center max-w-4xl mx-auto mb-5">
       <div>
