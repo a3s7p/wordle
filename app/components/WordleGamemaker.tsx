@@ -1,21 +1,10 @@
 "use client"
 
 import React, {FC, MouseEventHandler, useId, useState} from "react"
-import {
-  NadaValue,
-  NadaValues,
-  NamedValue,
-  StoreAcl,
-  ProgramId,
-  UserId,
-  Days,
-} from "@nillion/client-core"
-import {
-  useNilStoreProgram,
-  useNilStoreValues,
-} from "@nillion/client-react-hooks"
+import {useNilStoreProgram} from "@nillion/client-react-hooks"
+
 import {useWordle, useWordleDispatch} from "./WordleContext"
-import WordleRow from "./WordleRow"
+import WordleRowStore from "./WordleRowStore"
 
 const PROGRAM_FILENAME = "wordle.nada.bin"
 
@@ -91,71 +80,6 @@ const StoreProgram = () => {
   )
 }
 
-const StoreWord = () => {
-  const wordle = useWordle()
-  const wordleDispatch = useWordleDispatch()
-
-  const nilStore = useNilStoreValues()
-  const [chars, setChars] = useState(
-    Array.from({length: wordle.length}, () => ""),
-  )
-
-  if (nilStore.isSuccess)
-    wordleDispatch({type: "gmStoreId", value: nilStore.data})
-
-  const storeWord = () => {
-    nilStore.execute({
-      values: chars.reduce(
-        (acc, c, i) =>
-          acc.insert(
-            NamedValue.parse(`correct_${i + 1}`),
-            NadaValue.createSecretInteger(c?.charCodeAt(0)),
-          ),
-        NadaValues.create(),
-      ),
-      ttl: 8 as Days,
-      acl: StoreAcl.create().allowCompute(
-        [wordle.playerUserId as UserId],
-        wordle.programId as ProgramId,
-      ),
-    })
-  }
-
-  return (
-    <div>
-      <WordleRow
-        active={nilStore.isIdle}
-        chars={chars}
-        onCharAt={(x, c) =>
-          setChars(chars.map((v, i) => (i === x ? c.toUpperCase() : v)))
-        }
-      />
-      <div className="flex items-center justify-center mt-3">
-        <button
-          className={`flex items-center justify-center px-3 py-1 border rounded text-black text-center my-1 ${
-            nilStore.isLoading
-              ? "opacity-50 cursor-not-allowed bg-gray-200"
-              : "bg-white hover:bg-gray-100"
-          }`}
-          onClick={storeWord}
-          disabled={!nilStore.isIdle || !chars.every((c) => c)}
-        >
-          {nilStore.isSuccess ? (
-            "Stored!"
-          ) : nilStore.isLoading ? (
-            <div className="flex flex-row">
-              <div className="w-5 h-5 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin display-inline mr-3"></div>
-              Waiting for transaction...
-            </div>
-          ) : (
-            "Store Word of the Day"
-          )}
-        </button>
-      </div>
-    </div>
-  )
-}
-
 const Final = () => {
   const wordle = useWordle()
   const [copied, setCopied] = useState(false)
@@ -208,7 +132,7 @@ export default function WordleGamemakerWizard() {
   const steps = [
     <Intro key={`${key}-intro`} onClick={() => setStep(1)} />,
     <StoreProgram key={`${key}-program`} />,
-    <StoreWord key={`${key}-word`} />,
+    <WordleRowStore key={`${key}-word`} />,
     <Final key={`${key}-final`} />,
   ].map((content, i, all) => (
     <div key={`${key}-${i + 1}-outer`} className="mb-3">
@@ -220,7 +144,6 @@ export default function WordleGamemakerWizard() {
   ))
 
   if (step === 1 && wordle.programId) setStep(2)
-
   if (step === 2 && wordle.gmStoreId) setStep(3)
 
   return (

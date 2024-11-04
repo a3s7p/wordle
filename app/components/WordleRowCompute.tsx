@@ -25,13 +25,11 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   const {client} = useNillion()
   const nilCompute = useNilCompute()
   const nilComputeOutput = useNilComputeOutput()
-  const [chars, setChars] = useState(
-    Array.from({length: wordle.length}, () => ""),
-  )
   const [correctMap, setCorrectMap] = useState<boolean[] | undefined>()
-  const [isComplete, setIsComplete] = useState<boolean>()
 
-  if (nilCompute.isIdle && chars.every((char) => char)) {
+  const onComplete = (chars: string[]) => {
+    if (!nilCompute.isIdle) return
+
     const bindings = ProgramBindings.create(wordle.programId as ProgramId)
       .addInputParty(PartyName.parse("Gamemaker"), wordle.gmPartyId as PartyId)
       .addInputParty(PartyName.parse("Player"), client.partyId)
@@ -56,18 +54,15 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   }
 
   if (nilComputeOutput.isSuccess && !correctMap) {
-    setCorrectMap(
-      Object.entries(nilComputeOutput.data)
-        .sort()
-        .map(([, v]) => Number(v) !== 0),
-    )
-  }
+    const newCorrectMap = Object.entries(nilComputeOutput.data)
+      .sort()
+      .map(([, v]) => Number(v) !== 0)
 
-  if (correctMap && !isComplete) {
-    setIsComplete(true)
+    setCorrectMap(newCorrectMap)
+
     setTimeout(() =>
       wordleDispatch({
-        type: correctMap.every((b) => b) ? "winGame" : "nextRow",
+        type: newCorrectMap.every((b) => b) ? "winGame" : "nextRow",
         value: "",
       }),
     )
@@ -76,16 +71,9 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   return (
     <WordleRow
       key={key}
-      active={
-        active &&
-        !isComplete &&
-        !(nilCompute.isLoading || nilComputeOutput.isLoading)
-      }
-      chars={chars}
+      active={active && !correctMap && nilCompute.isIdle}
       correctMap={correctMap}
-      onCharAt={(x, c) =>
-        setChars(chars.map((v, i) => (i === x ? c.toUpperCase() : v)))
-      }
+      onComplete={onComplete}
     />
   )
 }
