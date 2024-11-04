@@ -13,12 +13,7 @@ const WordleChar: FC<{
   const key = useId()
 
   return <input
-    ref={elt => {
-      if (active && focus) {
-        setTimeout(() => elt?.focus(), 500)
-        console.log("focused", elt)
-      }
-    }}
+    ref={elt => {if (active && focus) elt?.focus()}}
     key={key}
     className={`mx-1 my-1 w-[40px] h-[40px] text-black text-center text-3xl font-extrabold ${
       isCorrect !== null
