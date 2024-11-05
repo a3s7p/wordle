@@ -1,6 +1,6 @@
 # Wordle
 
-This will be a Wordle implementation with secret data building on Nillion.
+This is a Wordle implementation built on Nillion.
 
 ```
 put screenshot here
