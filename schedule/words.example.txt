@@ -1,0 +1,46 @@
+# example wordlist -- bring your own words
+# comments starting with "#" and empty lines are ignored
+
+# weekly (by weekday starting with Mon) or monthly (days 1-7)
+WORD1
+WORD2
+WORD3
+WORD4
+WORD5
+WORD6
+WORD7
+
+# monthly (days 8-14)
+WORD1
+WORD2
+WORD3
+WORD4
+WORD5
+WORD6
+WORD7
+
+# monthly (days 15-21)
+WORD1
+WORD2
+WORD3
+WORD4
+WORD5
+WORD6
+WORD7
+
+# monthly (days 22-28)
+WORD1
+WORD2
+WORD3
+WORD4
+WORD5
+WORD6
+WORD7
+
+# monthly (days 28-31)
+WORD1
+WORD2
+WORD3
+WORD4
+
+# once the words for the respective period are exhausted, they wrap around and start over

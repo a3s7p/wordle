@@ -1,0 +1,1 @@
+5 0 * * * cd /path/to/wordle/wordlist && ./set-word-from.sh words.example.txt "$(date +%d)"
