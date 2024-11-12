@@ -79,23 +79,21 @@ export default function Login() {
             <p className="font-bold mb-3">To play you will need:</p>
             <ul className="list-disc list-inside">
               <li>
-                Keplr wallet with testnet chain{" "}
                 <a
-                  className="font-bold target-blank"
+                  className="font-bold text-sky-500 target-blank after:content-['_↗'] hover:underline"
                   href="https://docs.nillion.com/guide-testnet-connect"
                   target="_blank"
                 >
-                  (?)
+                  Keplr wallet with testnet chain
                 </a>
               </li>
               <li>
-                Some NIL{" "}
                 <a
-                  className="font-bold"
+                  className="font-bold text-sky-500 target-blank after:content-['_↗'] hover:underline"
                   href="https://docs.nillion.com/guide-testnet-faucet"
                   target="_blank"
                 >
-                  (?)
+                  Some NIL
                 </a>
               </li>
             </ul>
