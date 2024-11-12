@@ -7,13 +7,13 @@ inputs:
   correct_4: 4
   correct_5: 5
   guess_1: 5
-  guess_2: 3
+  guess_2: 8
   guess_3: 3
-  guess_4: 3
+  guess_4: 2
   guess_5: 5
 expected_outputs:
-  guess_result_1: 0
+  guess_result_1: -5
   guess_result_2: 0
   guess_result_3: 3
-  guess_result_4: 0
+  guess_result_4: -2
   guess_result_5: 5
