@@ -20,7 +20,6 @@ import WordleRow from "./WordleRow"
 import {useWordleSessionDispatch} from "./WordleSessionContext"
 
 const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
-  const key = useId()
   const wordle = useWordle()
   const wordleSessionDispatch = useWordleSessionDispatch()
   const {client} = useNillion()
@@ -69,12 +68,24 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   }
 
   return (
-    <WordleRow
-      key={key}
-      active={active && !correctMap && nilCompute.isIdle}
-      correctMap={correctMap}
-      onComplete={onComplete}
-    />
+    <div className="flex flex-row">
+      <div
+        className={`mr-3 my-auto w-5 h-5 display-inline border-white rounded-full ${
+          nilCompute.isLoading || nilComputeOutput.isLoading
+            ? "border border-r-0 animate-spin"
+            : active
+              ? "border animate-pulse"
+              : nilCompute.isIdle
+                ? ""
+                : "border border-gray-700"
+        }`}
+      ></div>
+      <WordleRow
+        active={active && !correctMap && nilCompute.isIdle}
+        correctMap={correctMap}
+        onComplete={onComplete}
+      />
+    </div>
   )
 }
 
