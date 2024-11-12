@@ -26,7 +26,7 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   const {client} = useNillion()
   const nilCompute = useNilCompute()
   const nilComputeOutput = useNilComputeOutput()
-  const [correctMap, setCorrectMap] = useState<boolean[] | undefined>()
+  const [correctMap, setCorrectMap] = useState<number[] | undefined>()
 
   const onComplete = (chars: string[]) => {
     if (!nilCompute.isIdle) return
@@ -57,13 +57,13 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   if (nilComputeOutput.isSuccess && !correctMap) {
     const newCorrectMap = Object.entries(nilComputeOutput.data)
       .sort()
-      .map(([, v]) => Number(v) !== 0)
+      .map(([, v]) => Number(v))
 
     setCorrectMap(newCorrectMap)
 
     setTimeout(() =>
       wordleSessionDispatch(
-        newCorrectMap.every((b) => b) ? "winGame" : "nextRow",
+        newCorrectMap.every((b) => b > 0) ? "winGame" : "nextRow",
       ),
     )
   }

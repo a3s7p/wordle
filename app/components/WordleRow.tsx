@@ -5,7 +5,7 @@ import {useWordle} from "./WordleContext"
 
 const WordleRow: FC<{
   active?: boolean
-  correctMap?: boolean[]
+  correctMap?: number[]
   onComplete: (s: string[]) => void
 }> = ({active = true, correctMap, onComplete}) => {
   const key = useId()
@@ -25,12 +25,14 @@ const WordleRow: FC<{
             char={char}
             className={
               correctMap
-                ? correctMap[x]
-                  ? "bg-green-300"
-                  : "bg-red-300"
+                ? correctMap[x] > 0
+                  ? "bg-green-500"
+                  : correctMap[x] < 0
+                    ? "bg-amber-500"
+                    : "bg-red-500"
                 : active
-                  ? "bg-yellow-100"
-                  : "bg-purple-200"
+                  ? "bg-yellow-200"
+                  : "bg-purple-300"
             }
             focus={!isComplete && active && x === index}
             onChange={(e) => {
