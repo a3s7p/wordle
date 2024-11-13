@@ -36,7 +36,13 @@ const WordleRow: FC<{
             }
             focus={!isComplete && active && x === index}
             onChange={(e) => {
-              setIndex(x + 1)
+              const changedTo = e.target.value.toUpperCase()
+
+              if (changedTo !== "") {
+                setIndex(x + 1)
+              } else {
+                setIndex(x)
+              }
 
               const newChars = chars.map((c, i) =>
                 i === x ? e.target.value.toUpperCase() : c,
