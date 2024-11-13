@@ -18,6 +18,7 @@ import {FC, useState} from "react"
 import {useWordle} from "./WordleContext"
 import WordleRow from "./WordleRow"
 import {useWordleSessionDispatch} from "./WordleSessionContext"
+import {recordGuess} from "../actions"
 
 const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   const wordle = useWordle()
@@ -59,12 +60,12 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
       .map(([, v]) => Number(v))
 
     setCorrectMap(newCorrectMap)
+    const nextEvent = newCorrectMap.every((b) => b > 0) ? "winGame" : "nextRow"
 
-    setTimeout(() =>
-      wordleSessionDispatch(
-        newCorrectMap.every((b) => b > 0) ? "winGame" : "nextRow",
-      ),
-    )
+    setTimeout(async () => {
+      wordleSessionDispatch(nextEvent)
+      recordGuess.bind(null, client.chain.address)()
+    })
   }
 
   return (
