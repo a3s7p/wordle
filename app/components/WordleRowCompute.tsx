@@ -13,7 +13,7 @@ import {
   useNilComputeOutput,
   useNillion,
 } from "@nillion/client-react-hooks"
-import {FC, useId, useState} from "react"
+import {FC, useState} from "react"
 
 import {useWordle} from "./WordleContext"
 import WordleRow from "./WordleRow"
