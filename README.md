@@ -1,14 +1,26 @@
 # Wordle
 
-This is a Wordle implementation built on Nillion.
+This is a Wordle implementation built on [Nillion](https://nillion.com).
 
-```
-put screenshot here
-```
+![Screenshot](https://github.com/user-attachments/assets/58b7ebba-b480-447c-8e9d-da36d62dc72c)
 
-## Setup
+[Play it live here!](https://nillion-wordle.vercel.app)
+ 
+Words change daily around midnight [UTC](https://time.is/UTC).
 
-If needed, [install Node](https://nodejs.org/en/download/package-manager) first.
+## How to play
+
+### Setting up the game
+
+https://github.com/user-attachments/assets/4e37bdbe-7a2f-4de2-93b6-253f8207a436
+
+### Playing the game
+
+https://github.com/user-attachments/assets/969b1a7c-1721-4d54-81d9-a1fff38d176b
+
+## Developer setup
+
+If needed, [install Node.js](https://nodejs.org/en/download/package-manager) first.
 
 Then [install the Nillion SDK](https://docs.nillion.com/quickstart-install).
 
