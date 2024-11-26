@@ -1,10 +1,8 @@
 # Wordle
 
-This is a Wordle implementation built on [Nillion](https://nillion.com).
+This is a Wordle implementation built on [Nillion](https://nillion.com). [Play it live here!](https://nillion-wordle.vercel.app)
 
 ![Screenshot](https://github.com/user-attachments/assets/58b7ebba-b480-447c-8e9d-da36d62dc72c)
-
-[Play it live here!](https://nillion-wordle.vercel.app)
  
 Words change daily around midnight [UTC](https://time.is/UTC).
 
