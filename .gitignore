@@ -68,3 +68,5 @@ nada/.venv/
 # python cache
 __pycache__
 .vercel
+
+.DS_Store
