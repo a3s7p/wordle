@@ -1,3 +1,5 @@
+"use client"
+
 import Login from "./components/Login"
 import {WelcomeContent} from "./components/WelcomeContent"
 import {WordleProvider} from "./components/WordleContext"

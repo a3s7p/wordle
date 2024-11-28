@@ -1,39 +1,62 @@
 "use client"
 
-import {useNillion, useNillionAuth} from "@nillion/client-react-hooks"
+import {createClient, NillionProvider} from "@nillion/client-react-hooks"
 import {useState} from "react"
 
 import Wordle from "./Wordle"
 import WordleGamemakerWizard from "./WordleGamemaker"
-import {UserSeed} from "@nillion/client-core"
 import {useWordle, useWordleDispatch} from "./WordleContext"
 import {WordleSessionProvider} from "./WordleSessionContext"
+import {VmClient} from "@nillion/client-vms"
 
 export default function Login() {
   const wordle = useWordle()
   const wordleDispatch = useWordleDispatch()
-  const {client} = useNillion()
-  const {authenticated, login, logout} = useNillionAuth()
+  const [client, setClient] = useState<VmClient | undefined>()
   const [isLoading, setIsLoading] = useState(false)
+
+  if (!wordle.gmSeed && !wordle.playerSeed) {
+    throw new Error(
+      "Set either NEXT_PUBLIC_WORDLE_GAMEMAKER_USER_SEED or the player envvars!",
+    )
+  }
+
+  const network =
+    process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ? "testnet" : "devnet"
 
   const handleLogin = async () => {
     try {
       setIsLoading(true)
+
       let playerSeed = wordle.playerSeed
+      if (wordle.gmSeed && !playerSeed) playerSeed = crypto.randomUUID()
+
+      // log in as player
+      // also to get future player UID for GM -- is there a better way?..
+      const playerClient = await createClient({
+        network,
+        seed: playerSeed,
+        keplr: window.keplr,
+      })
+
+      const playerUid = playerClient.id.toHex()
+      wordleDispatch({type: "playerUserId", value: playerUid})
 
       if (wordle.gmSeed) {
-        // log in to get future player UID -- is there a better way?..
-        if (!playerSeed) playerSeed = crypto.randomUUID()
+        // log in as GM
+        const gamemakerClient = await createClient({
+          network,
+          seed: wordle.gmSeed,
+          keplr: window.keplr,
+        })
 
-        await login({userSeed: playerSeed as UserSeed})
-        wordleDispatch({type: "playerUserId", value: client.userId})
-        await logout()
-        // log in as gm
-        await login({userSeed: wordle.gmSeed})
+        const gamemakerUid = gamemakerClient.id.toHex()
+        console.log(gamemakerUid)
+        wordleDispatch({type: "gmPartyId", value: gamemakerUid})
         wordleDispatch({type: "playerSeed", value: playerSeed})
-        wordleDispatch({type: "gmPartyId", value: client.partyId})
+
+        setClient(gamemakerClient)
       } else {
-        // actually log in as player
         const need = {
           NEXT_PUBLIC_WORDLE_PROGRAM_ID: playerSeed,
           NEXT_PUBLIC_WORDLE_PLAYER_USER_SEED: wordle.programId,
@@ -45,7 +68,7 @@ export default function Login() {
           if (!v)
             throw new Error(`${k} is unset; cannot play Wordle without it!`)
 
-        await login({userSeed: playerSeed as UserSeed})
+        setClient(playerClient)
       }
     } catch (err) {
       console.error(err)
@@ -54,22 +77,8 @@ export default function Login() {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      setIsLoading(true)
-      await logout()
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  if (!wordle.gmSeed && !wordle.playerSeed) {
-    throw Error(
-      "Set either NEXT_PUBLIC_WORDLE_GAMEMAKER_USER_SEED or the player envvars!",
-    )
-  }
+  const handleLogout = () => setClient(undefined)
+  const authenticated = client !== undefined
 
   return (
     <div className="w-full flex flex-col items-center max-w-4xl mx-auto mb-5">
@@ -113,15 +122,17 @@ export default function Login() {
           </button>
         </div>
         <div className="flex-row flex justify-center my-6">
-          {authenticated &&
-            !isLoading &&
-            (wordle.gmSeed ? (
-              <WordleGamemakerWizard />
-            ) : (
-              <WordleSessionProvider>
-                <Wordle />
-              </WordleSessionProvider>
-            ))}
+          {authenticated && !isLoading && (
+            <NillionProvider client={client}>
+              {wordle.gmSeed ? (
+                <WordleGamemakerWizard />
+              ) : (
+                <WordleSessionProvider>
+                  <Wordle />
+                </WordleSessionProvider>
+              )}
+            </NillionProvider>
+          )}
         </div>
       </div>
     </div>

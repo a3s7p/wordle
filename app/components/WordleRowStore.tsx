@@ -1,20 +1,12 @@
-import {useNilStoreValues} from "@nillion/client-react-hooks"
-import {
-  Days,
-  NadaValue,
-  NadaValues,
-  NamedValue,
-  ProgramId,
-  StoreAcl,
-  UserId,
-} from "@nillion/client-core"
-
+import {useNillion, useNilStoreValues} from "@nillion/client-react-hooks"
 import {useWordle, useWordleDispatch} from "./WordleContext"
 import WordleRow from "./WordleRow"
+import {NadaValue, ValuesPermissionsBuilder} from "@nillion/client-vms"
 
-const WordleRowStore = () => {
+export default function WordleRowStore() {
   const wordle = useWordle()
   const wordleDispatch = useWordleDispatch()
+  const {client} = useNillion()
   const nilStore = useNilStoreValues()
 
   if (nilStore.isSuccess)
@@ -22,23 +14,17 @@ const WordleRowStore = () => {
 
   const storeWord = (word: string[]) => {
     nilStore.execute({
-      values: word.reduce(
-        (acc, c, i) =>
-          acc.insert(
-            NamedValue.parse(`correct_${i + 1}`),
-            NadaValue.createSecretInteger(c?.charCodeAt(0)),
-          ),
-        NadaValues.create(),
-      ),
-      ttl: 3 as Days,
-      acl: StoreAcl.create().allowCompute(
-        [wordle.playerUserId as UserId],
-        wordle.programId as ProgramId,
-      ),
+      values: word.map((c, i) => ({
+        name: `correct_${i + 1}`,
+        value: NadaValue.new_secret_integer(c?.charCodeAt(0).toString()),
+      })),
+      ttl: 3,
+      permissions: ValuesPermissionsBuilder.init()
+        .owner(client.id)
+        .grantCompute(wordle.playerUserId, wordle.programId)
+        .build(),
     })
   }
 
   return <WordleRow active={nilStore.isIdle} onComplete={storeWord} />
 }
-
-export default WordleRowStore

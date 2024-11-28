@@ -1,19 +1,10 @@
-import {
-  NadaValue,
-  NadaValues,
-  NamedValue,
-  PartyId,
-  PartyName,
-  ProgramBindings,
-  ProgramId,
-  StoreId,
-} from "@nillion/client-core"
-import {
-  useNilCompute,
-  useNilComputeOutput,
-  useNillion,
-} from "@nillion/client-react-hooks"
 import {FC, useState} from "react"
+import {NadaValue, UserId} from "@nillion/client-vms"
+import {
+  useNilInvokeCompute,
+  useNillion,
+  useNilRetrieveComputeResults,
+} from "@nillion/client-react-hooks"
 
 import {useWordle} from "./WordleContext"
 import WordleRow from "./WordleRow"
@@ -24,29 +15,39 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
   const wordle = useWordle()
   const wordleSessionDispatch = useWordleSessionDispatch()
   const {client} = useNillion()
-  const nilCompute = useNilCompute()
-  const nilComputeOutput = useNilComputeOutput()
+  const nilCompute = useNilInvokeCompute()
+  const nilComputeOutput = useNilRetrieveComputeResults()
   const [correctMap, setCorrectMap] = useState<number[] | undefined>()
+
+  if (nilCompute.isError) {
+    console.log(nilCompute.error)
+  }
+
+  if (nilComputeOutput.isError) {
+    console.log(nilComputeOutput.error.message)
+  }
 
   const onComplete = (chars: string[]) => {
     if (!nilCompute.isIdle) return
 
-    const bindings = ProgramBindings.create(wordle.programId as ProgramId)
-      .addInputParty(PartyName.parse("Gamemaker"), wordle.gmPartyId as PartyId)
-      .addInputParty(PartyName.parse("Player"), client.partyId)
-      .addOutputParty(PartyName.parse("Player"), client.partyId)
+    const gmUid = new UserId(
+      Uint8Array.from(Buffer.from(wordle.gmPartyId, "hex")),
+    )
+
+    console.log(wordle, gmUid, client.id)
 
     nilCompute.execute({
-      bindings,
-      values: chars.reduce(
-        (acc, char, i) =>
-          acc.insert(
-            NamedValue.parse(`guess_${i + 1}`),
-            NadaValue.createSecretInteger(char.charCodeAt(0)),
-          ),
-        NadaValues.create(),
-      ),
-      storeIds: [wordle.gmStoreId as StoreId],
+      programId: wordle.programId,
+      inputBindings: [
+        {party: "Player", user: client.id},
+        {party: "Gamemaker", user: gmUid},
+      ],
+      outputBindings: [{party: "Player", users: [client.id]}],
+      computeTimeValues: chars.map((char, i) => ({
+        name: `guess_${i + 1}`,
+        value: NadaValue.new_secret_integer(char.charCodeAt(0).toString()),
+      })),
+      valueIds: [wordle.gmStoreId],
     })
   }
 
@@ -62,9 +63,9 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
     setCorrectMap(newCorrectMap)
     const nextEvent = newCorrectMap.every((b) => b > 0) ? "winGame" : "nextRow"
 
-    setTimeout(async () => {
+    setTimeout(() => {
       wordleSessionDispatch(nextEvent)
-      recordGuess.bind(null, client.chain.address)()
+      recordGuess.bind(null, client.payer.chain.address)()
     })
   }
 

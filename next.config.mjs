@@ -1,22 +1,60 @@
-/* eslint-disable */
-/** @type {import("next").NextConfig} */
+import { access, symlink } from "node:fs/promises";
+import { join } from "node:path";
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        // headers required for @nillion/client-wasm's wasm artefact
-        headers: [
-          {key: "Cross-Origin-Embedder-Policy", value: "require-corp"},
-          {key: "Cross-Origin-Opener-Policy", value: "same-origin"},
-        ],
-      },
-    ]
-  },
-}
+  reactStrictMode: false,
+  webpack: (config, { isServer }) => {
+    config.experiments = {
+      ...config.experiments,
+      topLevelAwait: true,
+      asyncWebAssembly: true,
+      layers: true,
+    };
 
-export default nextConfig
+    config.cache = false;
+
+    // fix warnings for async functions in the browser (https://github.com/vercel/next.js/issues/64792)
+    if (!isServer) {
+      config.output.environment = {
+        ...config.output.environment,
+        asyncFunction: true,
+      };
+    }
+
+    // Workaround for https://github.com/vercel/next.js/issues/25852
+    config.plugins.push(
+      new (class {
+        apply(compiler) {
+          compiler.hooks.afterEmit.tapPromise(
+            "SymlinkWebpackPlugin",
+            async (compiler) => {
+              if (isServer) {
+                const from = join(compiler.options.output.path, "../static");
+                const to = join(compiler.options.output.path, "static");
+
+                try {
+                  await access(from);
+                } catch (error) {
+                  // Access check failed, need to create symlink
+                  if (error.code === "ENOENT") {
+                    await symlink(to, from, "junction");
+                  } else {
+                    console.log(
+                      `SymlinkWebpackPlugin: Unexpected failure.  symlink ${from} -> ${to}`,
+                    );
+                    throw error;
+                  }
+                }
+              }
+            },
+          );
+        }
+      })(),
+    );
+
+    return config;
+  },
+};
+
+export default nextConfig;
