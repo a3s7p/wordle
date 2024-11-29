@@ -34,7 +34,12 @@ const WordleRowCompute: FC<{active: boolean}> = ({active}) => {
       Uint8Array.from(Buffer.from(wordle.gmPartyId, "hex")),
     )
 
-    console.log(wordle, gmUid, client.id)
+    console.log("Computing...")
+    console.log("gm uid hex:", wordle.gmPartyId)
+    console.log("gm uid raw:", gmUid)
+    console.log("player uid hex:", client.id.toHex())
+    console.log("player uid raw:", client.id)
+    console.log("state:", wordle)
 
     nilCompute.execute({
       programId: wordle.programId,
